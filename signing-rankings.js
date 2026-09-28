@@ -1,0 +1,23 @@
+(()=>{
+const API='https://bioqeczhqedlhbvprxci.supabase.co/functions/v1/ehl-signing-rankings';
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+let cache=null,busy=false,last=0;
+async function load(force=false){
+ const token=localStorage.getItem('ehlToken')||'';if(!token||busy)return;
+ if(!force&&Date.now()-last<45000)return;busy=true;last=Date.now();
+ try{const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json','x-session-token':token},body:JSON.stringify({refreshGoalies:true})});const x=await r.json();if(!r.ok)throw Error(x.error||'Kunne ikke hente signeringsrangering');cache=x;draw()}catch(e){console.error('signing rankings',e)}finally{busy=false}
+}
+function draw(){
+ if(!cache)return;const box=document.querySelector('#newSigningTable');if(!box)return;
+ const section=box.closest('.adminSectionBody');const hint=section?.querySelector('.adminHint');if(hint)hint.innerHTML='<b>Dynamisk forventningsmodell.</b> Alle ny-signeringer vurderes mot det de faktisk er hentet for. Unge utviklingsspillere vurderes mildere enn etablerte profiler. Utespillere vurderes på rollejustert produksjon, istid og tilgjengelighet. Keepere er med i samme rangering og vurderes på redningsprosent, GAA, bruk, seire og shutouts. Tidlig i sesongen dempes utslagene automatisk. <b>Dette er beslutningsstøtte – ikke automatisk fasit.</b>';
+ const q=(document.querySelector('#newSigningSearch')?.value||'').trim().toLowerCase(),team=document.querySelector('#newSigningTeam')?.value||'';
+ const all=cache.newSignings||[];const rows=all.filter(p=>(!team||p.team===team)&&(!q||(p.name+' '+p.team+' '+p.roleLabel+' '+(p.note||'')).toLowerCase().includes(q)));
+ if(!rows.length){box.innerHTML='<div class="notice">Ingen treff.</div>';return}
+ const eligible=all.filter(x=>x.rankEligible);
+ box.innerHTML='<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;min-width:1080px;font-size:12px"><thead><tr style="text-align:left;color:var(--muted)"><th style="padding:8px">#</th><th style="padding:8px">Spiller</th><th style="padding:8px">Rolle</th><th style="padding:8px">Kamper</th><th style="padding:8px">Aktuelt</th><th style="padding:8px">Forventning</th><th style="padding:8px">Bruk</th><th style="padding:8px">Vurdering</th><th style="padding:8px">Sikkerhet</th><th style="padding:8px">Valgt av</th></tr></thead><tbody>'+rows.map(p=>{const rank=p.rankEligible?(eligible.indexOf(p)+1):'–',cls=p.riskScore==null?'riskNA':p.riskScore>=70?'riskHigh':p.riskScore>=40?'riskMid':'riskLow',conf=p.confidenceLabel==='Høy'?'high':p.confidenceLabel==='Middels'?'mid':'low';return '<tr class="newSigningRow" style="border-top:1px solid var(--line)"><td style="padding:8px" class="rankTop">'+rank+'</td><td style="padding:8px"><b>'+esc(p.name)+'</b><div class="tiny">'+esc(p.team)+(p.position?' · '+esc(p.position):'')+(p.age?' · '+p.age+' år':'')+'</div><div class="tiny">'+esc(p.indicator)+'</div><div class="why">'+esc((p.reasons||[]).join(' · '))+'</div></td><td style="padding:8px"><b>'+esc(p.roleLabel)+'</b><div class="roleMeta">'+esc(p.roleSource||'')+(p.priorLeague?' · '+esc(p.priorLeague):'')+'</div>'+(p.note?'<div class="why">'+esc(p.note)+'</div>':'')+'</td><td style="padding:8px">'+p.games+'</td><td style="padding:8px;font-weight:800">'+esc(p.actualText||'—')+'</td><td style="padding:8px">'+esc(p.expectedText||'—')+'</td><td style="padding:8px">'+esc(p.usageText||'—')+'</td><td style="padding:8px"><span class="risk '+cls+'">'+(p.riskScore==null?'Ikke nok data':p.riskScore+'/100')+'</span></td><td style="padding:8px"><span class="confidence '+conf+'">'+esc(p.confidenceLabel||'Lav')+'</span></td><td style="padding:8px">'+p.chosenBy+'</td></tr>'}).join('')+'</tbody></table></div><div class="tiny" style="margin-top:8px">#1 = størst aktuell underprestasjon i forhold til forventet rolle. Keepere og utespillere er i samme liste, men vurderes med ulike kriterier.</div>';
+ setTimeout(()=>document.dispatchEvent(new Event('signingRankingDrawn')),0);
+}
+const mo=new MutationObserver(()=>{if(document.querySelector('#newSigningTable')){draw();load()}});mo.observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('input',e=>{if(e.target?.id==='newSigningSearch')draw()});document.addEventListener('change',e=>{if(e.target?.id==='newSigningTeam')draw()});
+setInterval(()=>load(true),60000);setTimeout(()=>load(true),1800);
+})();
