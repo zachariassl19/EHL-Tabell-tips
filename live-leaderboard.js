@@ -9,7 +9,7 @@ async function drawLiveLeaderboard(){try{
  const token=localStorage.getItem('ehlToken')||'';
  const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json','x-session-token':token},body:'{}'}),x=await r.json();if(!r.ok)throw Error(x.error||'Kunne ikke hente leaderboard');
  const rows=x.leaderboard||[];
- el.innerHTML='<div class="liveLbNote"><b>Live leaderboard</b><br>Poengene består av foreløpig tabellscore mot EHL-tabellen akkurat nå + avgjorte sesongvalg + avgjorte bonusoppgaver. Derfor kan tabellpoengene endre seg etter hver kamp.</div>'+rows.map((u,i)=>'<div class="lb"><div class="pos">'+(i+1)+'</div><div><b>'+u.name+'</b><div class="lbBreak">Tabell '+u.table+' p · Sesongfasit '+u.categories+' p · Bonus '+u.bonus+' p</div></div><div class="pts">'+u.points+' p</div></div>').join('');
+ el.innerHTML='<div class="liveLbNote"><b>Live leaderboard</b><br>Poengene består av <b>Tabelltips</b> mot EHL-tabellen akkurat nå + avgjorte <b>Sesongtips</b> + avgjorte <b>Bonus</b>. Tabelltips kan derfor endre seg etter hver kamp.</div>'+rows.map((u,i)=>'<div class="lb"><div class="pos">'+(i+1)+'</div><div><b>'+u.name+'</b><div class="lbBreak">Tabelltips '+u.table+' p · Sesongtips '+(u.season??u.categories??0)+' p · Bonus '+u.bonus+' p</div></div><div class="pts">'+u.points+' p</div></div>').join('');
  window.__liveLeaderboard=x;
  }catch(e){console.error('live leaderboard',e)}
 }
