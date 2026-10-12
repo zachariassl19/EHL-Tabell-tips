@@ -74,6 +74,78 @@ h2{font-size:24px;letter-spacing:-.025em}h3{letter-spacing:-.015em}.muted,p{colo
  .wrap{padding:12px 10px 44px}.top{padding-top:4px}.top h1{font-size:34px}.tabs{top:4px;border-radius:14px;padding:5px}.tab{padding:9px 11px;font-size:13px}.card{padding:14px;border-radius:17px}.participantGrid{grid-template-columns:1fr!important}.analyticsgrid{grid-template-columns:repeat(3,1fr)}.metric{padding:10px}.metric b{font-size:19px}.livegrid{grid-template-columns:1fr}.frame{height:560px}.adminPerks h3{font-size:24px}
 }
 </style>
+<style id="desktop-ui-v3">
+@media(min-width:900px){
+  .wrap{max-width:1440px;padding:28px 30px 72px}
+  .top{padding:4px 4px 24px}
+  .top h1{font-size:54px;line-height:.9}
+  #app{display:grid;grid-template-columns:230px minmax(0,1fr);gap:22px;align-items:start}
+  #app>.deadline{grid-column:1/-1;margin-bottom:0;padding:20px 22px;border-radius:24px}
+  #app>.tabs{
+    grid-column:1;
+    position:sticky;top:24px;
+    display:flex;flex-direction:column;overflow:visible;
+    margin:0;padding:10px;
+    border-radius:22px;
+    background:linear-gradient(180deg,rgba(16,22,32,.96),rgba(8,12,19,.96));
+    border:1px solid #263244;
+    box-shadow:0 20px 60px rgba(0,0,0,.32)
+  }
+  #app>.tabs .tab{
+    width:100%;text-align:left;padding:13px 14px;border-radius:13px;
+    font-size:14px;position:relative
+  }
+  #app>.tabs .tab.on:after{
+    content:"";position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    width:7px;height:7px;border-radius:50%;background:#140b03
+  }
+  #app>.view{grid-column:2;min-width:0}
+  #tipsView>.card:first-child,
+  #leaderboardView>.card,
+  #rulesView>.card,
+  #bonusView>.card:first-child,
+  #liveView>.card,
+  #adminView>.card{
+    border-radius:24px
+  }
+  #tipsView .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tipsView>.card:first-child{padding:22px}
+  #ranking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  #ranking .rank{min-height:72px;grid-template-columns:40px 1fr 40px;padding:12px 14px}
+  #selectRanking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .bonus{padding:22px 24px}
+  #bonusTasks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  #bonusTasks>.card{margin-bottom:0}
+  #bonusTasks>.card:nth-child(1),
+  #bonusTasks>.card:nth-child(2),
+  #bonusTasks>.card:nth-child(3){grid-column:span 1}
+  #leaderboardView{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  #leaderboardView .lb{padding:18px 8px}
+  #leaderboardView .pts{font-size:24px}
+  #adminView{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+  #adminView>.card{margin-bottom:0}
+  #adminView>.card:nth-child(1){grid-column:span 12;background:linear-gradient(135deg,#171d28,#10151f)}
+  #adminView>.adminPerks{grid-column:span 12}
+  #adminView>#resetCard{grid-column:span 4}
+  #adminView>.card:has(#nmUnlock){grid-column:span 4}
+  #adminView>.card:has(#actualRanking){grid-column:span 12}
+  #adminView>.grid{grid-column:span 12}
+  #adminView>#saveActual{grid-column:span 12}
+  #adminView>#adminMsg{grid-column:span 12}
+  #adminView>.card:has(#adminBonus){grid-column:span 12}
+  .participantGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .analyticsgrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .adminSection summary{font-size:15px}
+  #newSigningTable{font-size:13px}
+  #newSigningTable table{min-width:1180px!important}
+  .frame{height:760px}
+}
+@media(min-width:1200px){
+  #bonusTasks{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #ranking,#selectRanking{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .participantGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+</style>
 </head>
 <body><div class="wrap">
 <header class="top"><div><div class="ey">EHL 2026/27</div><h1>Familietips</h1></div><button id="logout" class="ghost hidden">Logg ut</button></header>
