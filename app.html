@@ -146,6 +146,41 @@ h2{font-size:24px;letter-spacing:-.025em}h3{letter-spacing:-.015em}.muted,p{colo
   .participantGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }
 </style>
+<style id="table-tip-ui">
+.tableTipWrap{overflow:hidden;border:1px solid #293548;border-radius:18px;background:#090e16}
+.tableTip{width:100%;border-collapse:collapse}
+.tableTip th{padding:11px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#7f8ba0;background:#0f1621;border-bottom:1px solid #293548}
+.tableTip th:first-child{width:76px;text-align:center}
+.tableTip th:last-child{width:116px;text-align:center}
+.tableTip td{padding:13px 14px;border-bottom:1px solid #1d2735}
+.tableTip tbody tr:last-child td{border-bottom:0}
+.tableTip tbody tr{transition:.15s background,.15s transform}
+.tableTip tbody tr:hover{background:#111925}
+.tablePlace{text-align:center!important;font-size:20px;font-weight:950;color:#ff8a22}
+.tableTeam{font-size:15px;font-weight:850}
+.tableTeam select{margin:0}
+.tableMove{text-align:center}
+.tableMoveBtns{display:inline-flex;gap:6px}
+.tableMoveBtns button{width:34px;height:30px;border-radius:9px;border:1px solid #2c394c;background:#172231;color:#fff;font-weight:900}
+.tableMoveBtns button:hover:not(:disabled){background:#223147;border-color:#43556f}
+#ranking,#selectRanking{display:block!important;margin-top:14px}
+#ranking.hidden,#selectRanking.hidden{display:none!important}
+@media(min-width:900px){
+ #ranking,#selectRanking{display:block!important}
+ #ranking.hidden,#selectRanking.hidden{display:none!important}
+ .tableTipWrap{max-width:900px}
+ .tableTip td{padding:14px 16px}
+ .tableTeam{font-size:16px}
+}
+@media(max-width:640px){
+ .tableTip th,.tableTip td{padding:11px 9px}
+ .tableTip th:first-child{width:54px}
+ .tableTip th:last-child{width:92px}
+ .tablePlace{font-size:17px}
+ .tableMoveBtns{gap:4px}
+ .tableMoveBtns button{width:31px;height:29px}
+}
+</style>
 </head>
 <body><div class="wrap">
 <header class="top"><div><div class="ey">EHL 2026/27</div><h1>Familietips</h1></div><button id="logout" class="ghost hidden">Logg ut</button></header>
@@ -227,7 +262,44 @@ function people(team,newOnly=false,kind='player'){return (D.people||[]).filter(x
 function playerSelect(teamEl,playerEl,newOnly=false,value=''){teamOptions(teamEl);const existing=(D.people||[]).find(x=>x.kind==='player'&&(x.name+' — '+x.team)===value);if(existing)teamEl.value=existing.team;const refresh=()=>{playerEl.innerHTML='<option value="">Velg spiller</option>';people(teamEl.value,newOnly).forEach(x=>playerEl.add(new Option(x.name,x.name+' — '+x.team)));if(value&&[...playerEl.options].some(o=>o.value===value))playerEl.value=value};teamEl.onchange=()=>{value='';refresh()};refresh()}
 function fill(){const coaches=[...people('',false,'coach')];for(const id of ['coach','aCoach']){const e=$('#'+id);e.innerHTML='<option value="">Velg</option>';e.add(new Option(D.noCoach,D.noCoach));coaches.forEach(x=>e.add(new Option(x.name+' — '+x.team,x.name+' — '+x.team)))}for(const id of ['positive','aPositive','champ','aChamp'])teamOptions($('#'+id));const t=D.tip||{};$('#coach').value=t.coach_pick||'';$('#positive').value=t.positive_pick||'';$('#champ').value=t.champion_pick||'';playerSelect($('#pointsTeam'),$('#points'),false,t.points_pick||'');playerSelect($('#worstTeam'),$('#worst'),true,t.worst_pick||'');playerSelect($('#ppTeam'),$('#pp'),false,t.playoff_points_pick||'');playerSelect($('#mvpTeam'),$('#mvp'),false,t.mvp_pick||'');if(D.actual){$('#aCoach').value=D.actual.coach||'';$('#aPositive').value=D.actual.positive||'';$('#aChamp').value=D.actual.champion||'';playerSelect($('#aPointsTeam'),$('#aPoints'),false,D.actual.points||'');playerSelect($('#aWorstTeam'),$('#aWorst'),true,D.actual.worst||'');playerSelect($('#aPPTeam'),$('#aPP'),false,D.actual.playoff_points||'');playerSelect($('#aMvpTeam'),$('#aMvp'),false,D.actual.mvp||'')}}
 function lockSeasonUi(){const isLocked=locked();['rankMode','coach','pointsTeam','points','worstTeam','worst','positive'].forEach(id=>{const e=$('#'+id);if(e)e.disabled=isLocked});const b=$('#save');if(b){b.disabled=isLocked;b.textContent=isLocked?'Sesongtipset er låst':'Lagre sesongtips'}if(isLocked){const v=$('#tipsView');if(v&&!v.querySelector('.seasonLocked')){const n=document.createElement('div');n.className='seasonLocked';n.textContent='🔒 Fristen er ute. Sesongtipset er låst og kan ikke endres.';v.insertBefore(n,v.firstChild)}}}
-function renderRanking(){const mode=$('#rankMode').value;$('#ranking').classList.toggle('hidden',mode!=='move');$('#selectRanking').classList.toggle('hidden',mode!=='select');if(mode==='move'){const c=$('#ranking');c.innerHTML='';order.forEach((team,i)=>{const r=document.createElement('div');r.className='rank';r.draggable=!locked();r.innerHTML='<div class="num">'+(i+1)+'</div><b>'+team+'</b><div class="ctl"><button>▲</button><button>▼</button></div>';r.ondragstart=e=>e.dataTransfer.setData('text/plain',i);r.ondragover=e=>e.preventDefault();r.ondrop=e=>{e.preventDefault();const from=+e.dataTransfer.getData('text/plain');const [x]=order.splice(from,1);order.splice(i,0,x);renderRanking();renderBracket()};const b=r.querySelectorAll('button');b[0].disabled=locked()||i===0;b[1].disabled=locked()||i===order.length-1;b[0].onclick=()=>{[order[i-1],order[i]]=[order[i],order[i-1]];renderRanking();renderBracket()};b[1].onclick=()=>{[order[i+1],order[i]]=[order[i],order[i+1]];renderRanking();renderBracket()};c.append(r)})}else{const c=$('#selectRanking');c.innerHTML='';for(let i=0;i<D.teams.length;i++){const r=document.createElement('div');r.className='selrow';r.innerHTML='<div class="num">'+(i+1)+'</div>';const s=document.createElement('select');s.add(new Option('Velg lag',''));D.teams.forEach(t=>{const o=new Option(t,t);o.selected=selectOrder[i]===t;o.disabled=selectOrder.includes(t)&&selectOrder[i]!==t;s.add(o)});s.disabled=locked();s.onchange=()=>{selectOrder[i]=s.value;if(selectOrder.every(Boolean)&&new Set(selectOrder).size===D.teams.length)order=[...selectOrder];renderRanking();renderBracket()};r.append(s);c.append(r)}}}
+function renderRanking(){
+ const mode=$('#rankMode').value;
+ $('#ranking').classList.toggle('hidden',mode!=='move');
+ $('#selectRanking').classList.toggle('hidden',mode!=='select');
+ if(mode==='move'){
+  const c=$('#ranking');
+  c.innerHTML='<div class="tableTipWrap"><table class="tableTip"><thead><tr><th>Plass</th><th>Lag</th><th>Flytt</th></tr></thead><tbody></tbody></table></div>';
+  const body=c.querySelector('tbody');
+  order.forEach((team,i)=>{
+   const r=document.createElement('tr');
+   r.draggable=!locked();
+   r.innerHTML='<td class="tablePlace">'+(i+1)+'</td><td class="tableTeam"><b>'+team+'</b></td><td class="tableMove"><div class="tableMoveBtns"><button title="Flytt opp">▲</button><button title="Flytt ned">▼</button></div></td>';
+   r.ondragstart=e=>e.dataTransfer.setData('text/plain',i);
+   r.ondragover=e=>e.preventDefault();
+   r.ondrop=e=>{e.preventDefault();const from=+e.dataTransfer.getData('text/plain');const [x]=order.splice(from,1);order.splice(i,0,x);renderRanking();renderBracket()};
+   const b=r.querySelectorAll('button');
+   b[0].disabled=locked()||i===0;b[1].disabled=locked()||i===order.length-1;
+   b[0].onclick=()=>{[order[i-1],order[i]]=[order[i],order[i-1]];renderRanking();renderBracket()};
+   b[1].onclick=()=>{[order[i+1],order[i]]=[order[i],order[i+1]];renderRanking();renderBracket()};
+   body.append(r);
+  });
+ }else{
+  const c=$('#selectRanking');
+  c.innerHTML='<div class="tableTipWrap"><table class="tableTip"><thead><tr><th>Plass</th><th>Lag</th></tr></thead><tbody></tbody></table></div>';
+  const body=c.querySelector('tbody');
+  for(let i=0;i<D.teams.length;i++){
+   const r=document.createElement('tr');
+   r.innerHTML='<td class="tablePlace">'+(i+1)+'</td><td class="tableTeam"></td>';
+   const sel=document.createElement('select');
+   sel.add(new Option('Velg lag',''));
+   D.teams.forEach(t=>{const o=new Option(t,t);o.selected=selectOrder[i]===t;o.disabled=selectOrder.includes(t)&&selectOrder[i]!==t;sel.add(o)});
+   sel.disabled=locked();
+   sel.onchange=()=>{selectOrder[i]=sel.value;if(selectOrder.every(Boolean)&&new Set(selectOrder).size===D.teams.length)order=[...selectOrder];renderRanking();renderBracket()};
+   r.querySelector('.tableTeam').append(sel);
+   body.append(r);
+  }
+ }
+}
 function renderBracket(){const top=order.slice(0,8);$('#bracket').innerHTML='<div><h4>Topp 8</h4>'+top.map((x,i)=>'<div class="match">'+(i+1)+'. '+x+'</div>').join('')+'</div><div><h4>Kvartfinaler</h4>'+Array(4).fill('<div class="match">Valg senere</div>').join('')+'</div><div><h4>Videre</h4><div class="match">Semifinaler</div><div class="match">NM-finale</div><div class="match">🏆 '+($('#champ').value||'Din vinner')+'</div></div>'}
 async function saveTips(){try{const table=$('#rankMode').value==='select'?[...selectOrder]:[...order];if(table.length!==D.teams.length||table.some(x=>!x)||new Set(table).size!==D.teams.length)throw Error('Velg ett forskjellig lag på alle plassene');order=[...table];await call('save_tips',{tip:{table_tip:table,coach_pick:$('#coach').value,points_pick:$('#points').value,worst_pick:$('#worst').value,positive_pick:$('#positive').value}});$('#msg').textContent='Lagret ✓';D=await call('bootstrap');renderLb()}catch(e){$('#msg').textContent=e.message}}
 async function saveNm(){try{await call('save_nm',{tip:{champion_pick:$('#champ').value,playoff_points_pick:$('#pp').value,mvp_pick:$('#mvp').value}});$('#nmMsg').textContent='NM-tips lagret ✓'}catch(e){$('#nmMsg').textContent=e.message}}
