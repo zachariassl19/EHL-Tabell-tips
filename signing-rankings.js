@@ -15,7 +15,7 @@ function queueDraw(){if(drawQueued)return;drawQueued=true;requestAnimationFrame(
 function draw(){
  if(!cache)return;const box=document.querySelector('#newSigningTable');if(!box)return;
  const section=box.closest('.adminSectionBody');const hint=section?.querySelector('.adminHint');
- if(hint)hint.innerHTML='<b>Dynamisk forventningsmodell.</b> Alle ny-signeringer vurderes mot det de faktisk er hentet for. Unge utviklingsspillere vurderes mildere enn etablerte profiler. Utespillere vurderes på rollejustert produksjon, istid og tilgjengelighet. Keepere er med i samme rangering og vurderes på redningsprosent, GAA, bruk, seire og shutouts. Tidlig i sesongen dempes utslagene automatisk. <b>Dette er beslutningsstøtte – ikke automatisk fasit.</b>';
+ if(hint)hint.innerHTML='<b>Dynamisk forventningsmodell.</b> Alle ny-signeringer vurderes mot det de faktisk er hentet for. Produksjon er bare én del av vurderingen: rolle, faktisk istid/bruk, tilgjengelighet, alder, tidligere nivå og datamengde teller også. Defensive backer straffes lite for 0 poeng når de faktisk spiller mye, mens etablerte toppspillere vurderes strengere. Keepere vurderes på redningsprosent, GAA, spilletid, seire og shutouts. Rangeringen beregnes automatisk på nytt gjennom sesongen. <b>Dette er beslutningsstøtte – ikke automatisk fasit.</b>';
  const q=(document.querySelector('#newSigningSearch')?.value||'').trim().toLowerCase(),team=document.querySelector('#newSigningTeam')?.value||'';
  const all=cache.newSignings||[],rows=all.filter(p=>(!team||p.team===team)&&(!q||(p.name+' '+p.team+' '+p.roleLabel+' '+(p.note||'')).toLowerCase().includes(q)));
  if(!rows.length){box.innerHTML='<div class="notice">Ingen treff.</div>';document.dispatchEvent(new CustomEvent('signingRankingDrawn'));return}
