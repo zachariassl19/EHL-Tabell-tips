@@ -15,7 +15,7 @@ function applyTop10(){
  wrap.innerHTML='<button type="button" class="top10Toggle">'+(expanded?'Vis topp 10':'Vis alle '+rows.length)+'</button><div class="top10Meta">Viser '+(expanded?rows.length:Math.min(10,rows.length))+' av '+rows.length+' ny-signeringer.</div>';
  const btn=wrap.querySelector('button');if(btn)btn.onclick=()=>{expanded=!expanded;applyTop10()};
 }
-const mo=new MutationObserver(()=>setTimeout(applyTop10,0));mo.observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('signingRankingDrawn',()=>setTimeout(applyTop10,0));
 document.addEventListener('input',e=>{if(e.target?.id==='newSigningSearch')setTimeout(applyTop10,0)});
 document.addEventListener('change',e=>{if(e.target?.id==='newSigningTeam')setTimeout(applyTop10,0)});
 setTimeout(applyTop10,1600);
