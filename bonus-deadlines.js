@@ -4,6 +4,17 @@ const style=document.createElement('style');style.textContent=`
 @media(max-width:560px){.bonusTop{align-items:stretch}.bonusDeadlineWrap{align-items:stretch}.deadlineBox{justify-content:center;text-align:center}.bonusPick{flex-direction:column;align-items:stretch}}
 `;document.head.append(style);
 
+
+const baseScoringText=typeof scoringText==='function'?scoringText:null;
+scoringText=function(t){
+ const s=t?.scoring||{};
+ if((s.top3??0)>0||(s.top5??0)>0){return 'Riktig '+(s.exact??0)+' p'+((s.top3??0)>0?' · Topp 3 '+s.top3+' p':'')+((s.top5??0)>0?' · Topp 5 '+s.top5+' p':'')}
+ if(t?.kind==='team_choice')return 'Riktig svar: '+(s.correct??0)+' p';
+ if(t?.kind==='position_number'||t?.kind==='number')return 'Eksakt '+(s.exact??0)+' p · 1 unna '+(s.oneAway??0)+' p · 2 unna '+(s.twoAway??0)+' p · 3 unna '+(s.threeAway??0)+' p';
+ if(t?.kind==='option_choice'&&((s.oneAway??0)>0||(s.twoAway??0)>0||(s.threeAway??0)>0))return 'Eksakt '+(s.exact??0)+' p · 1 trinn unna '+(s.oneAway??0)+' p · 2 unna '+(s.twoAway??0)+' p · 3 unna '+(s.threeAway??0)+' p';
+ return baseScoringText?baseScoringText(t):'Riktig svar: '+(s.exact??0)+' p';
+};
+
 const originalRenderBonus=typeof renderBonus==='function'?renderBonus:null;
 renderBonus=function(){
  const c=$('#bonusTasks');if(!c||!D)return;c.innerHTML='';
