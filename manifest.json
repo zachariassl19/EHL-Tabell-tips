@@ -1,0 +1,19 @@
+{
+  "name": "EHL Familietips 2026/27",
+  "short_name": "EHL Familietips",
+  "description": "Familietips for EHL 2026/27",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#06080d",
+  "theme_color": "#08111d",
+  "lang": "nb-NO",
+  "icons": [
+    {
+      "src": "./ehl-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
