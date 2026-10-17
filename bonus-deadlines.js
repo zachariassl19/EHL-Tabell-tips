@@ -8,6 +8,7 @@ const style=document.createElement('style');style.textContent=`
 const baseScoringText=typeof scoringText==='function'?scoringText:null;
 scoringText=function(t){
  const s=t?.scoring||{};
+ if(s.mode==='ranked_nearest'&&Array.isArray(s.rankPoints)){const p=s.rankPoints;return 'Nærmest '+(p[0]??0)+' p · 2. nærmest '+(p[1]??0)+' p · 3. nærmest '+(p[2]??0)+' p · 4. nærmest '+(p[3]??0)+' p · 5. nærmest '+(p[4]??0)+' p';}
  if((s.top3??0)>0||(s.top5??0)>0){return 'Riktig '+(s.exact??0)+' p'+((s.top3??0)>0?' · Topp 3 '+s.top3+' p':'')+((s.top5??0)>0?' · Topp 5 '+s.top5+' p':'')}
  if(t?.kind==='team_choice')return 'Riktig svar: '+(s.correct??0)+' p';
  if(t?.kind==='position_number'||t?.kind==='number')return 'Eksakt '+(s.exact??0)+' p · 1 unna '+(s.oneAway??0)+' p · 2 unna '+(s.twoAway??0)+' p · 3 unna '+(s.threeAway??0)+' p';
