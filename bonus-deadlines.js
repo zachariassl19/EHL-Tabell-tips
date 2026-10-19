@@ -1,7 +1,7 @@
 (()=>{
 const style=document.createElement('style');style.textContent=`
 .bonusTop{align-items:flex-start}.bonusDeadlineWrap{display:flex;flex-direction:column;gap:4px;align-items:flex-end}.deadlineBox{display:inline-flex;align-items:center;gap:5px}.deadlinePast{background:#281419;border-color:#6f2d38;color:#ffadb7}.deadlineOpen{background:#23180d;border-color:#6e481e;color:#ffd7a6}.bonusSaveMsg{font-size:12px;font-weight:800;margin-top:8px}.bonusSaveMsg.ok{color:var(--green)}.bonusSaveMsg.err{color:var(--red)}
-@media(max-width:560px){.bonusTop{align-items:stretch}.bonusDeadlineWrap{align-items:stretch}.deadlineBox{justify-content:center;text-align:center}.bonusPick{flex-direction:column;align-items:stretch}}
+@media(max-width:560px){.bonusTop{align-items:stretch}.bonusDeadlineWrap{align-items:stretch}.deadlineBox{justify-content:center;text-align:center}.bonusPick{flex-direction:column;align-items:stretch}.bonusPick>*{width:100%;min-width:0;box-sizing:border-box}.bonusPick input,.bonusPick select{font-size:16px;min-height:52px}.bonusPick button{min-height:50px}.tabs{-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}.tabs .tab{flex:0 0 auto;scroll-snap-align:start}.card.bonus{overflow:hidden}.pointsInfo{line-height:1.55}}
 `;document.head.append(style);
 
 
