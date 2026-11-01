@@ -3,6 +3,7 @@
 if(typeof renderBonus!=='function')return;
 let selectedPack=null;
 let seasonExpanded=false;
+let releaseTimer=null;
 const featured=[
  {id:'2026-11',title:'November',emoji:'🍂'},
  {id:'2026-12',title:'Desember',emoji:'🎄'},
@@ -104,6 +105,7 @@ renderBonus=function(){
  const root=document.querySelector('#bonusTasks');
  if(!root||typeof D==='undefined'||!D)return;
  root.replaceChildren();
+ if(releaseTimer){clearInterval(releaseTimer);releaseTimer=null}
  const now=Date.now(),tasks=D.bonusTasks||[],picks=new Map((D.bonusPicks||[]).map(p=>[p.task_id,p]));
  const packages=new Map(),season=[];
  tasks.forEach(t=>{
@@ -129,21 +131,22 @@ renderBonus=function(){
   const all=packages.get(pack.id)||[];
   const answered=all.filter(t=>picks.has(t.id)).length;
   const accessible=all.filter(t=>!isHiddenBeforeOpen(t,now));
-  const nextOpen=all.filter(t=>isHiddenBeforeOpen(t,now)).map(t=>new Date(t.opens_at).getTime()).sort((a,b)=>a-b)[0];
+  const nextOpen=all.filter(t=>isHiddenBeforeOpen(t,now)).map(t=>t.opens_at?new Date(t.opens_at).getTime():NaN).filter(Number.isFinite).sort((a,b)=>a-b)[0];
   const allDone=all.length&&all.every(t=>t.status==='settled');
   const selected=selectedPack===pack.id;
-  const btn=document.createElement('button');btn.type='button';btn.className='packTile';btn.setAttribute('aria-pressed',String(selected));
+  const btn=document.createElement('button');btn.type='button';btn.className='packTile';btn.setAttribute('aria-pressed',String(selected));if(nextOpen&&!accessible.length)btn.dataset.opensAt=String(nextOpen);
   const top=document.createElement('div');top.className='packTileTop';
   addText(top,'span','packIcon',pack.emoji);
   addText(top,'span','packLock',allDone?'✓':accessible.length?'↗':'🔒');
   btn.append(top);
   addText(btn,'span','packTitle',pack.title);
   addText(btn,'span','packMeta',all.length?all.length+' spørsmål · '+all.reduce((n,t)=>n+maxBonus(t),0)+' p':'Spørsmål kommer');
-  addText(btn,'span','packStatus'+(allDone?' done':''),allDone?'Avgjort':!all.length?'Kommer senere':accessible.length?answered+'/'+all.length+' besvart':nextOpen?'Åpner '+fmt(new Date(nextOpen)):'Ikke åpnet');
+  addText(btn,'span','packStatus'+(allDone?' done':''),allDone?'Avgjort':!all.length?'Kommer senere':accessible.length?answered+'/'+all.length+' besvart':nextOpen?'Åpner om '+countdownText(nextOpen-now):'Ikke åpnet');
   btn.onclick=()=>{selectedPack=selected?null:pack.id;seasonExpanded=false;renderBonus()};
   grid.append(btn);
  });
  root.append(grid);
+ if(grid.querySelector('[data-opens-at]'))releaseTimer=setInterval(async()=>{let expired=false;grid.querySelectorAll('[data-opens-at]').forEach(tile=>{const ms=Number(tile.dataset.opensAt)-Date.now(),status=tile.querySelector('.packStatus');if(ms<=0)expired=true;else if(status)status.textContent='Åpner om '+countdownText(ms)});if(expired){clearInterval(releaseTimer);releaseTimer=null;try{D=await call('bootstrap');renderBonus()}catch(e){console.warn('Kunne ikke oppdatere månedspakkene',e)}}},1000);
  if(selectedPack){
   const pack=packs.find(p=>p.id===selectedPack),all=packages.get(selectedPack)||[];
   if(pack){
