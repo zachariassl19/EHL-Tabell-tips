@@ -14,13 +14,13 @@ const months=['','januar','februar','mars','april','mai','juni','juli','august',
 const monthAlias={jan:1,feb:2,mar:3,apr:4,mai:5,may:5,jun:6,jul:7,aug:8,sep:9,okt:10,oct:10,nov:11,des:12,dec:12};
 const css=document.createElement('style');
 css.textContent=[
- '.bonusIntro{margin-bottom:12px}.bonusIntro h2{margin-bottom:5px}.bonusIntro p{margin:0}',
+ '#bonusTasks{display:block!important;grid-template-columns:none!important;min-width:0}#bonusTasks>*{min-width:0}.bonusIntro{margin-bottom:12px}.bonusIntro h2{margin-bottom:5px}.bonusIntro p{margin:0}',
  '.packHeading{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:10px 2px 12px}.packHeading h3{margin:0;font-size:19px}.packHeading .tiny{white-space:nowrap}',
- '.packGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}',
- '.packTile{width:100%;display:flex;flex-direction:column;align-items:stretch;gap:7px;text-align:left;min-height:140px;padding:15px;border:1px solid #2a3445;border-radius:17px;background:linear-gradient(150deg,#141b27,#0b1018);color:#fff;box-shadow:none;cursor:pointer}',
+ '.packGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px;width:100%}',
+ '.packTile{min-width:0;overflow:hidden;width:100%;display:flex;flex-direction:column;align-items:stretch;gap:7px;text-align:left;min-height:140px;padding:15px;border:1px solid #2a3445;border-radius:17px;background:linear-gradient(150deg,#141b27,#0b1018);color:#fff;box-shadow:none;cursor:pointer}',
  '.packTile:hover{border-color:#a5662b}.packTile[aria-pressed="true"]{border-color:var(--accent);background:linear-gradient(145deg,#24190f,#101722);box-shadow:0 0 0 1px rgba(255,122,0,.15)}',
  '.packTileTop{display:flex;justify-content:space-between;align-items:center}.packIcon{font-size:30px}.packLock{font-size:15px;color:#a7b4c5}',
- '.packTitle{font-size:17px;font-weight:900;line-height:1.15}.packMeta{font-size:12px;color:#aeb8ca}.packStatus{margin-top:auto;font-size:11px;font-weight:900;color:#ffbd7d}.packStatus.done{color:var(--green)}',
+ '.packTitle{font-size:17px;font-weight:900;line-height:1.15;overflow-wrap:anywhere}.packMeta{font-size:12px;color:#aeb8ca}.packStatus{margin-top:auto;font-size:11px;font-weight:900;color:#ffbd7d}.packStatus.done{color:var(--green)}',
  '.packExpanded{padding:15px;margin:0 0 15px;border:1px solid #3f342b;border-radius:17px;background:#101620}.packExpanded h3{margin:0 0 5px}.packExpanded>.tiny{margin-bottom:12px;display:block}',
  '.packTaskList{display:grid;grid-template-columns:1fr;gap:10px}.packTaskList>.card{margin:0}',
  '.bonusSeasonToggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px;background:#101722;color:#fff;border:1px solid #2a3445;border-radius:15px;text-align:left;cursor:pointer}',
@@ -36,7 +36,7 @@ function getPackage(t){
  const raw=t?.source_rule?.package;
  if(raw===null||raw===undefined||raw==='')return null;
  const str=String(raw).trim().toLowerCase();
- const m=str.match(/(20\d{2})[-_/](0?[1-9]|1[0-2])/);
+ const m=str.match(/^(20\d{2})[-_/](1[0-2]|0?[1-9])$/);
  if(m)return m[1]+'-'+String(+m[2]).padStart(2,'0');
  for(const [key,no] of Object.entries(monthAlias)){
   if(str.startsWith(key))return (no>=11?'2026':'2027')+'-'+String(no).padStart(2,'0');
