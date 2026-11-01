@@ -58,7 +58,7 @@ function addText(parent,tag,cls,value){
  return el;
 }
 function isHiddenBeforeOpen(t,now){
- return !D.user.is_admin && !!t.opens_at && new Date(t.opens_at).getTime()>now && t.status!=='settled';
+ return !D.user.is_admin && t.status!=='settled' && (t.status==='draft'||(!!t.opens_at&&new Date(t.opens_at).getTime()>now));
 }
 function makeTask(t,picks){
  const p=picks.get(t.id),now=Date.now(),hasDeadline=!!t.deadline,past=hasDeadline&&now>new Date(t.deadline).getTime();
