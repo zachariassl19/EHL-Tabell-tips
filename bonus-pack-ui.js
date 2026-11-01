@@ -140,7 +140,7 @@ renderBonus=function(){
   addText(btn,'span','packTitle',pack.title);
   addText(btn,'span','packMeta',all.length?all.length+' spørsmål · '+all.reduce((n,t)=>n+maxBonus(t),0)+' p':'Spørsmål kommer');
   addText(btn,'span','packStatus'+(allDone?' done':''),allDone?'Avgjort':!all.length?'Kommer senere':accessible.length?answered+'/'+all.length+' besvart':nextOpen?'Åpner '+fmt(new Date(nextOpen)):'Ikke åpnet');
-  btn.onclick=()=>{selectedPack=selected?null:pack.id;renderBonus()};
+  btn.onclick=()=>{selectedPack=selected?null:pack.id;seasonExpanded=false;renderBonus()};
   grid.append(btn);
  });
  root.append(grid);
@@ -169,7 +169,7 @@ renderBonus=function(){
  addText(seasonLabel,'small','',season.length?(season.filter(t=>picks.has(t.id)).length+'/'+season.length+' besvart · '+season.reduce((n,t)=>n+maxBonus(t),0)+' mulige poeng'):'Ingen sesongbonuser ennå');
  seasonHead.append(seasonLabel);
  addText(seasonHead,'span','',seasonExpanded?'⌃':'⌄');
- seasonHead.onclick=()=>{seasonExpanded=!seasonExpanded;renderBonus()};
+ seasonHead.onclick=()=>{seasonExpanded=!seasonExpanded;if(seasonExpanded)selectedPack=null;renderBonus()};
  root.append(seasonHead);
  if(seasonExpanded){
   const body=document.createElement('div');body.className='bonusSeasonList';
