@@ -78,6 +78,7 @@ function makeTask(t,picks){
  card.append(top);
  addText(card,'h3','',t.title);
  if(t.description)addText(card,'p','',t.description);
+ if((t.kind==='number'||t.kind==='position_number')&&Array.isArray(t.options)&&t.options.length){const vals=t.options.map(Number).filter(Number.isFinite);if(vals.length)addText(card,'div','tiny','Velg et heltall fra '+Math.min(...vals)+' til '+Math.max(...vals)+'.')}
  const points=addText(card,'div','pointsInfo','Maks '+maxBonus(t)+' p · '+scoringText(t));
  points.setAttribute('aria-label','Poengberegning');
  addText(card,'div','meta',(p?'Ditt valg: '+bonusValue(t,p):'Ikke besvart')+(t.status==='settled'&&p?' · '+p.points+' p':''));
