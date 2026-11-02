@@ -35,14 +35,19 @@ renderAdminBonus=function(){
   const form=document.createElement('form');
   const question=document.createElement('input');question.placeholder='Skriv spørsmålet';question.required=true;question.maxLength=200;field(form,'Spørsmål',question);
   const kind=document.createElement('select');kind.add(new Option('Velg svar','option_choice'));kind.add(new Option('Tipp antall','number'));field(form,'Svartype',kind);
-  const choices=document.createElement('textarea');choices.value='Ja\nNei';const choicesLabel=field(form,'Alternativer (ett per linje)',choices);kind.onchange=()=>choicesLabel.style.display=kind.value==='number'?'none':'';
+  const choices=document.createElement('textarea');choices.value='Ja\nNei';const choicesLabel=field(form,'Alternativer (ett per linje)',choices);
+  const min=document.createElement('input');min.type='number';min.step='1';min.min='0';min.max='149';min.value='0';const minLabel=field(form,'Minste tillatte antall',min);
+  const max=document.createElement('input');max.type='number';max.step='1';max.min='1';max.max='150';max.value='6';const maxLabel=field(form,'Største tillatte antall (f.eks. 6 kamper)',max);
+  const updateKind=()=>{const numeric=kind.value==='number';choicesLabel.style.display=numeric?'none':'';minLabel.style.display=numeric?'':'none';maxLabel.style.display=numeric?'':'none';min.required=numeric;max.required=numeric};
+  kind.onchange=updateKind;updateKind();
   const points=document.createElement('input');points.type='number';points.min='1';points.max='5';points.value='1';points.required=true;field(form,'Poeng for helt riktig svar (1–5)',points);
   const deadline=document.createElement('input');deadline.type='datetime-local';deadline.required=true;field(form,'Svarfrist',deadline);
   const description=document.createElement('textarea');description.placeholder='Valgfri beskrivelse';field(form,'Beskrivelse',description);
   const create=el('button','Opprett spørsmål','secondary');create.type='submit';const feedback=el('div','', 'monthlyAdminMsg');form.append(create,feedback);
   form.onsubmit=async e=>{e.preventDefault();const options=choices.value.split('\n').map(s=>s.trim()).filter(Boolean);if(kind.value==='option_choice'&&options.length<2){feedback.textContent='Minst to svaralternativer';return}
+   if(kind.value==='number'&&(min.value===''||max.value===''||!Number.isInteger(Number(min.value))||!Number.isInteger(Number(max.value))||Number(min.value)<0||Number(max.value)<=Number(min.value)||Number(max.value)>150||Number(max.value)-Number(min.value)>120)){feedback.textContent='Velg gyldige grenser for antallet';return}
    if(!deadline.value){feedback.textContent='Velg svarfrist';return}create.disabled=true;feedback.textContent='Oppretter…';
-   try{await call('admin_create_bonus_task',{package:pkg,title:question.value,description:description.value,kind:kind.value,options,points:Number(points.value),deadline:new Date(deadline.value).toISOString()});
+   try{await call('admin_create_bonus_task',{package:pkg,title:question.value,description:description.value,kind:kind.value,options,min:Number(min.value),max:Number(max.value),points:Number(points.value),deadline:new Date(deadline.value).toISOString()});
     messages[pkg]='✓ Spørsmål opprettet';D=await call('bootstrap');renderAdminBonus();renderBonus();renderRules();
    }catch(err){feedback.textContent='Feil: '+err.message;create.disabled=false}
   };
