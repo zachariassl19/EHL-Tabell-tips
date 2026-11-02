@@ -40,7 +40,7 @@ renderAdminBonus=function(){
   const max=document.createElement('input');max.type='number';max.step='1';max.min='1';max.max='150';max.value='6';const maxLabel=field(form,'Største tillatte antall (f.eks. 6 kamper)',max);
   const updateKind=()=>{const numeric=kind.value==='number';choicesLabel.style.display=numeric?'none':'';minLabel.style.display=numeric?'':'none';maxLabel.style.display=numeric?'':'none';min.required=numeric;max.required=numeric};
   kind.onchange=updateKind;updateKind();
-  const points=document.createElement('input');points.type='number';points.min='1';points.max='5';points.value='1';points.required=true;field(form,'Poeng for helt riktig svar (1–5)',points);
+  const points=document.createElement('input');points.type='number';points.min='1';points.max='10';points.value='1';points.required=true;field(form,'Poeng for helt riktig svar (1–10)',points);
   const deadline=document.createElement('input');deadline.type='datetime-local';deadline.required=true;field(form,'Svarfrist',deadline);
   const description=document.createElement('textarea');description.placeholder='Valgfri beskrivelse';field(form,'Beskrivelse',description);
   const create=el('button','Opprett spørsmål','secondary');create.type='submit';const feedback=el('div','', 'monthlyAdminMsg');form.append(create,feedback);
