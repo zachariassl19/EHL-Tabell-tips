@@ -48,6 +48,7 @@ const dateLocal=iso=>{if(!iso)return'';const d=new Date(iso);if(!Number.isFinite
 const dateField=(parent,label,iso)=>{const inp=elem('input');inp.type='datetime-local';inp.value=dateLocal(iso);field(parent,label,inp);return inp};
 const distinct=a=>new Set(a.filter(Boolean)).size===a.filter(Boolean).length;
 let draft={q:['','','',''],finalists:['',''],champion:''},lastData=null;
+const championLabel=document.getElementById('champ')?.closest('label')||null;
 function hydrate(){
  if(!D||lastData===D)return;
  lastData=D;
@@ -66,6 +67,9 @@ function drawBracket(){
  if(!D)return;
  hydrate();
  const root=document.getElementById('bracket');if(!root)return;
+ // Preserve the actual champion select when rebuilding the bracket: removing the
+ // previous bracket contents without detaching it would destroy the form field.
+ if(championLabel&&root.contains(championLabel))championLabel.remove();
  cleanDraft();root.replaceChildren();
  const intro=elem('div',undefined,'nmBracketIntro');
  intro.append(elem('h3','🏆 Veien til NM-gull · 70 poeng'));
@@ -97,7 +101,7 @@ function drawBracket(){
  final.append(elem('small','Dine to finalister. Riktig lag gir 7 poeng hver.'));cF.append(final);
  const cM=elem('div',undefined,'nmBracketColumn');cM.dataset.stage='champion';cM.append(elem('h4','④ NM-mester · 1 lag'));
  const winner=elem('div',undefined,'nmBracketMatch');winner.append(elem('strong','🏆 NORGESMESTER'));
- const oldChamp=document.getElementById('champ');
+ const oldChamp=championLabel?.querySelector('select')||document.getElementById('champ');
  if(oldChamp){
   const oldLabel=oldChamp.closest('label');if(oldLabel){oldLabel.style.display='block';oldLabel.style.margin='10px 0';winner.append(oldLabel)}
   oldChamp.replaceChildren();oldChamp.add(new Option('Velg vinner',''));
