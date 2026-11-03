@@ -6,7 +6,8 @@ const st=document.createElement('style');st.textContent=[
 '#nmExtra .nmMatchCard h4{font-size:15px;margin:0 0 10px}',
 '#nmExtra .nmSmall{color:#aeb8ca;font-size:12px;line-height:1.5;margin:7px 0}',
 '#nmExtra .nmMatchCard select{width:100%}',
-'#nmAdminMatches{border-top:1px solid #334155;margin-top:16px;padding-top:15px}',
+'#adminView>#nmMatchAdminCard{grid-column:span 12;min-width:0}',
+'#nmAdminMatches{min-width:0}',
 '#nmAdminMatches details{border:1px solid #2c3c51;border-radius:12px;background:#0b121c;margin:10px 0;padding:12px}',
 '#nmAdminMatches summary{cursor:pointer;font-weight:800}',
 '#nmAdminMatches label{display:block;font-size:12px;font-weight:800;margin-top:10px}',
@@ -72,7 +73,8 @@ renderNmState=function(){
 function nmAdmin(){
  if(!D?.user?.is_admin)return;
  const anchor=document.getElementById('nmUnlock')?.closest('.card');if(!anchor)return;
- let root=document.getElementById('nmAdminMatches');if(!root){root=el('div');root.id='nmAdminMatches';anchor.append(root)}
+ let root=document.getElementById('nmAdminMatches');
+ if(!root){const panel=el('div',undefined,'card');panel.id='nmMatchAdminCard';root=el('div');root.id='nmAdminMatches';panel.append(root);anchor.insertAdjacentElement('afterend',panel)}
  root.replaceChildren();root.append(el('h3','🥇 NM-oppgjør · 40 poeng'),el('p','Legg inn lag og svarfrist når sluttspilloppsettet er offisielt. Svarfristen må komme før kampstart.','tiny'));
  for(const task of nmTasks()){
    const details=el('details');const summary=el('summary',task.title+' · '+maxBonus(task)+' p · '+(task.status==='draft'?'Ikke klar':task.status==='settled'?'Avgjort':'Åpen/planlagt'));
