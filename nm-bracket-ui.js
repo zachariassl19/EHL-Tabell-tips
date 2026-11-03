@@ -173,9 +173,26 @@ function finalBonus(){
  });
  root.append(grid);
 }
+function addPlayerExplanations(){
+ const pp=document.getElementById('pp'),mvp=document.getElementById('mvp');
+ const playersCard=pp?.closest('.card.grid');
+ if(playersCard&&!playersCard.querySelector('#nmPlayerTitle')){
+  const title=elem('h3','⭐ Spillerutmerkelser · 20 poeng');title.id='nmPlayerTitle';
+  title.style.gridColumn='1 / -1';title.style.margin='4px 0 0';
+  const lead=elem('p','Velg en spiller til hver kategori. Riktig spiller gir 10 poeng. Har du riktig klubb men feil spiller, får du 3 poeng.');lead.style.gridColumn='1 / -1';lead.className='nmSaveInfo';
+  playersCard.prepend(lead);playersCard.prepend(title);
+ }
+ const help=[
+  [pp?.closest('.field'),'nmPpHelp','Poengkonge: Spilleren med flest mål + assists gjennom hele NM-sluttspillet.'],
+  [mvp?.closest('.field'),'nmMvpHelp','MVP: Spilleren som får den offisielle utmerkelsen som sluttspillets mest verdifulle spiller.']
+ ];
+ help.forEach(([root,id,description])=>{
+  if(root&&!root.querySelector('#'+id)){const t=elem('p',description,'nmSaveInfo');t.id=id;root.append(t)}
+ });
+}
 const previousNm=renderNmState;
 renderNmState=function(){
- previousNm();hydrate();drawBracket();finalBonus();
+ previousNm();hydrate();drawBracket();addPlayerExplanations();finalBonus();
  const save=document.getElementById('saveNm');if(save){save.onclick=saveWholeBracket;save.textContent=D.nmBracketPick?'Oppdater hele NM-tipset':'Lagre hele NM-tipset';save.disabled=lockedNm()||!Array.isArray(D.nmBracket?.quarter_pairs)||D.nmBracket.quarter_pairs.length!==4}
  const oldNote=document.getElementById('nmTotalLocked');if(oldNote)oldNote.textContent='NM har 100 poeng: bracket 70, poengkonge 10, MVP 10 og finaleutfordringer 10.';
 };
