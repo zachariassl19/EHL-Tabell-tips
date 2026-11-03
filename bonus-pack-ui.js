@@ -28,6 +28,19 @@ css.textContent=[
  '.bonusSeasonToggle strong{font-size:17px}.bonusSeasonToggle small{display:block;color:#aeb8ca;font-size:12px;margin-top:4px}',
  '.bonusSeasonList{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}.bonusSeasonList>.card{margin:0}',
  '.bonusEmpty{border:1px dashed #35445b;border-radius:12px;padding:16px;color:#aeb8ca;font-size:13px}',
+ '.packTileOpponents{font-size:11px;line-height:1.4;color:#d1d9e7;min-height:31px;overflow-wrap:anywhere}',
+ '.packGames{border:1px solid #314158;border-radius:15px;background:#0b1420;padding:14px;margin:14px 0 17px;min-width:0}',
+ '.packGamesTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 6px}',
+ '.packGamesTitle h4{font-size:16px;color:#f5f8fc;margin:0}',
+ '.packGamesCaption{font-size:11px;color:#9fb2c9;line-height:1.5;margin:0 0 11px}',
+ '.packGamesList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}',
+ '.packGameRow{display:grid;grid-template-columns:65px minmax(0,1fr);gap:10px;align-items:center;padding:10px;border:1px solid #2a394d;border-radius:11px;background:#111d2d;min-width:0}',
+ '.packGameDate{font-size:12px;font-weight:900;color:#f6ca97;line-height:1.35}',
+ '.packGameDate small{display:block;font-size:11px;color:#aeb8ca;font-weight:700}',
+ '.packGameOpponent{font-size:13px;font-weight:900;color:#f4f7fc;overflow-wrap:anywhere}',
+ '.packGameSubtitle{font-size:11px;color:#acbdd0;line-height:1.4;margin-top:3px}',
+ '.packGameResult{font-weight:900;color:#8ee1aa}',
+ '@media(max-width:740px){.packGamesList{grid-template-columns:1fr}}',
  '@media(min-width:800px){.packGrid{grid-template-columns:repeat(5,minmax(0,1fr))}.packTaskList,.bonusSeasonList{grid-template-columns:repeat(2,minmax(0,1fr))}}',
  '@media(max-width:460px){.packTile{min-height:132px;padding:12px}.packTitle{font-size:16px}.packIcon{font-size:27px}.packHeading{align-items:flex-start;flex-direction:column}}'
 ].join('');
@@ -57,6 +70,43 @@ function addText(parent,tag,cls,value){
  el.textContent=String(value??'');
  parent.append(el);
  return el;
+}
+function fixturesFor(pkg){
+ return (Array.isArray(D?.monthlyFixtures)?D.monthlyFixtures:[])
+  .filter(g=>typeof g?.date==='string'&&g.date.slice(0,7)===pkg)
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.time||'').localeCompare(String(b.time||'')));
+}
+function fixtureDate(date){
+ if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date||'')))return String(date||'');
+ const [y,m,d]=date.split('-').map(Number);
+ return new Intl.DateTimeFormat('nb-NO',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d,12)));
+}
+function renderFixtures(parent,pkg){
+ const games=fixturesFor(pkg),wrap=document.createElement('section');
+ wrap.className='packGames';
+ const title=document.createElement('div');title.className='packGamesTitle';
+ addText(title,'h4','','🏒 Storhamars kamper');
+ addText(title,'span','packMeta',games.length+' kamper');
+ wrap.append(title);
+ if(!games.length){
+  addText(wrap,'p','packGamesCaption','Ingen kamper funnet i den oppdaterte terminlisten. Sjekk HockeyLive for siste informasjon.');
+  parent.append(wrap);return;
+ }
+ const home=games.filter(g=>g.home).length,away=games.length-home;
+ addText(wrap,'p','packGamesCaption',home+' hjemme · '+away+' borte · Kilde: HockeyLive. Datoer og tider kan endres.');
+ const list=document.createElement('div');list.className='packGamesList';
+ games.forEach(g=>{
+  const row=document.createElement('div');row.className='packGameRow';
+  const when=document.createElement('div');
+  addText(when,'div','packGameDate',fixtureDate(g.date));
+  addText(when,'small','packGameSubtitle',g.time?'kl. '+g.time:'Tid ikke satt');
+  const opponent=document.createElement('div');
+  addText(opponent,'div','packGameOpponent',String(g.opponent||'Ukjent lag'));
+  const finished=g.finished&&Number.isInteger(Number(g.goals))&&Number.isInteger(Number(g.against))&&g.goals!==null&&g.against!==null;
+  addText(opponent,'div','packGameSubtitle'+(finished?' packGameResult':''),(g.home?'🏠 Hjemme':'🚌 Borte')+(finished?' · Resultat '+g.goals+'–'+g.against:''));
+  row.append(when,opponent);list.append(row);
+ });
+ wrap.append(list);parent.append(wrap);
 }
 function isHiddenBeforeOpen(t,now){
  return !D.user.is_admin && t.status!=='settled' && (t.status==='draft'||(!!t.opens_at&&new Date(t.opens_at).getTime()>now));
@@ -142,7 +192,12 @@ renderBonus=function(){
   addText(top,'span','packLock',allDone?'✓':accessible.length?'↗':'🔒');
   btn.append(top);
   addText(btn,'span','packTitle',pack.title);
+  const games=fixturesFor(pack.id);
   addText(btn,'span','packMeta',all.length?all.length+' spørsmål · '+all.reduce((n,t)=>n+maxBonus(t),0)+' p':'Spørsmål kommer');
+  if(games.length){
+   const opponents=games.slice(0,2).map(g=>g.opponent).join(', ');
+   addText(btn,'span','packTileOpponents','🏒 '+games.length+' kamper · '+opponents+(games.length>2?' + '+(games.length-2)+' til':''));
+  }
   addText(btn,'span','packStatus'+(allDone?' done':''),allDone?'Avgjort':!all.length?'Kommer senere':accessible.length?answered+'/'+all.length+' besvart':nextOpen?'Åpner om '+countdownText(nextOpen-now):'Ikke åpnet');
   btn.onclick=()=>{selectedPack=selected?null:pack.id;seasonExpanded=false;renderBonus()};
   grid.append(btn);
@@ -154,6 +209,7 @@ renderBonus=function(){
   if(pack){
    const panel=document.createElement('section');panel.className='packExpanded';
    addText(panel,'h3','',pack.emoji+' '+pack.title);
+   renderFixtures(panel,pack.id);
    const accessible=all.filter(t=>!isHiddenBeforeOpen(t,now));
    const nextOpen=all.filter(t=>isHiddenBeforeOpen(t,now)).map(t=>new Date(t.opens_at).getTime()).sort((a,b)=>a-b)[0];
    if(!all.length)addText(panel,'div','bonusEmpty','Spørsmålene er ikke publisert ennå. De kommer senere i sesongen.');
