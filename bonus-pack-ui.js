@@ -77,7 +77,7 @@ function fixturesFor(pkg){
   .sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.time||'').localeCompare(String(b.time||'')));
 }
 function fixtureDate(date){
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(date||'')))return String(date||'');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(String(date||'')))return String(date||'');
  const [y,m,d]=date.split('-').map(Number);
  return new Intl.DateTimeFormat('nb-NO',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d,12)));
 }
