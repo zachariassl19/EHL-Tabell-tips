@@ -68,7 +68,7 @@ function drawBracket(){
  const root=document.getElementById('bracket');if(!root)return;
  cleanDraft();root.replaceChildren();
  const intro=elem('div',undefined,'nmBracketIntro');
- intro.append(elem('h3','🏆 Veien til NM-gull · 75 poeng'));
+ intro.append(elem('h3','🏆 Veien til NM-gull · 70 poeng'));
  intro.append(elem('p','Tipp fire kvartfinalevinnere, to finalister og én norgesmester. Riktige kvartfinaler gir 4 poeng hver, riktige finalister 7 hver og riktig mester 20. Du får 10 ekstra for alle fire kvartfinalene riktig og 10 ekstra for begge finalistene.'));
  root.append(intro);
  const pairs=D.nmBracket?.quarter_pairs||[],hasPairs=pairs.length===4,readonly=lockedNm();
