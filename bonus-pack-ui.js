@@ -110,6 +110,7 @@ renderBonus=function(){
  const now=Date.now(),tasks=D.bonusTasks||[],picks=new Map((D.bonusPicks||[]).map(p=>[p.task_id,p]));
  const packages=new Map(),season=[];
  tasks.forEach(t=>{
+  if(t.source_rule?.group==="nm")return; // NM questions belong in the NM tab, not season bonus
   const id=getPackage(t);
   if(!id){season.push(t);return}
   if(!packages.has(id))packages.set(id,[]);
