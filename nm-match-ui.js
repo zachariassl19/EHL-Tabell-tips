@@ -34,7 +34,7 @@ function dateInput(value){const el=document.createElement('input');el.type='date
 const getQuestions=()=>D?.bonusTasks?.filter(t=>t.source_rule?.group==='nm')||[];
 const getSaved=()=>new Map((D?.bonusPicks||[]).map(p=>[p.task_id,p]));
 function isQuarter(t){return t.source_rule?.stage==='quarter'}
-function optionText(t){return t.kind==='number'?'Velg antall':isQuarter(t)?'Velg Ja eller Nei':'Velg laget som går til finalen'}
+function optionText(t){return t.kind==='number'?'Velg antall kamper':'Velg Ja eller Nei'}
 function stage(title,total){const e=element('div',undefined,'nmStageTitle');const h=element('h4',title);const p=element('span',total+' poeng','nmPointsPill');e.append(h,p);return e}
 async function reloadNm(){
  D=await call('bootstrap');
@@ -49,19 +49,14 @@ function questionCard(task,saved){
  const phrase=isQuarter(task)?'KVARTFINALE · 5 P':'SEMIFINALE · 10 P';
  card.append(element('div',phrase,'nmStageChip'),element('h4',task.title));
  if(task.description)card.append(element('p',task.description,'nmSmall'));
- if(!isQuarter(task)&&task.options?.length===2){
-  const match=element('div',undefined,'nmVersus');
-  match.append(element('span',task.options[0]),element('strong','VS'),element('span',task.options[1]));
-  card.append(match);
- }
- if(task.status==='settled'){
+if(task.status==='settled'){
   card.append(element('p','✅ Avgjort · '+(saved?saved.points+' poeng':'Ikke besvart'),'nmSmall'));
   card.append(element('p','Riktig svar: '+String(task.actual_value?.value??'—'),'nmSmall'));
   if(saved)card.append(element('p','Ditt tips: '+String(saved.value?.value??saved.value),'nmSmall'));
   return card;
  }
  if(task.status==='draft'){
-  card.append(element('p',isQuarter(task)?'🔒 Spørsmålet åpner når svarfristen er bestemt.':'🔒 Lagene bestemmes etter kvartfinalene.','nmSmall'));
+  card.append(element('p',isQuarter(task)?'🔒 Spørsmålet åpner når svarfristen er bestemt.':'🔒 Åpnes etter kvartfinalene og låses før første semifinale.','nmSmall'));
   return card;
  }
  if(!task.is_open){
@@ -94,12 +89,12 @@ function nmView(){
  root.replaceChildren();
  const intro=element('div',undefined,'nmIntro');
  intro.append(element('h3','🏆 Veien til NM-gull'));
- intro.append(element('p','Fire forskjellige kvartfinaletips og to finaleplasser. Velg Ja/Nei, antall eller lag. Alt har klare svar som gir poeng når kampene er ferdige.'));
+ intro.append(element('p','Fire kvartfinaletips og to semifinaletips. Velg Ja/Nei eller antall. Svarene låses før den første kampen i hver runde.'));
  root.append(intro);
  const questions=getQuestions(),saved=getSaved();
  for(const [title,pts,filter] of [
   ['🔥 Kvartfinaler',20,isQuarter],
-  ['🥇 Hvem når finalen?',20,t=>!isQuarter(t)]
+  ['🥇 Semifinaletips',20,t=>!isQuarter(t)]
  ]){
   const selected=questions.filter(filter);
   root.append(stage(title,pts));
@@ -135,26 +130,19 @@ function adminNM(){
  }
  root.replaceChildren();
  root.append(element('h3','🏆 Veien til NM-gull · 40 poeng'));
- root.append(element('p','Kvartfinalene har ferdige svarvalg. Du setter bare åpning og svarfrist. I semifinalene velger du lagene som møtes.','nmAdminHint'));
+ root.append(element('p','Alle spørsmål har ferdige svarvalg. Sett åpning og svarfrist. Begge semifinalespørsmålene får automatisk samme frist og må låses før den første semifinalekampen.','nmAdminHint'));
  if(!D.settings?.nm_deadline)root.append(element('p','Husk å sette hovedfristen for NM i feltet ovenfor før NM åpnes.','nmError'));
  const tasks=getQuestions();
- for(const [heading,filter] of [['🔥 Kvartfinaletips',isQuarter],['🥇 Finalebilletter',t=>!isQuarter(t)]]){
+ for(const [heading,filter] of [['🔥 Kvartfinaletips',isQuarter],['🥇 Semifinaletips',t=>!isQuarter(t)]]){
   const h=element('h4',heading);h.style.margin='20px 0 8px';root.append(h);
   for(const t of tasks.filter(filter)){
    const details=element('details'),label=t.status==='draft'?'Ikke publisert':t.status==='settled'?'Avgjort':'Klargjort';
    const summary=element('summary',t.title+' · '+maxBonus(t)+' p · '+label);
    details.append(summary);
    if(t.description)details.append(element('p',t.description,'nmAdminHint'));
-   if(isQuarter(t)){
-    const choices=t.options.map(String).join(' / ');
-    details.append(element('p','Svaralternativer: '+choices,'nmAdminHint'));
-   }
-   let a=null,b=null;
-   if(!isQuarter(t)){
-    a=adminSelect(D.teams||[],t.options?.[0]||'','Lag 1');
-    b=adminSelect(D.teams||[],t.options?.[1]||'','Lag 2');
-    field(details,'Lag 1',a);field(details,'Lag 2',b);
-   }
+   const choices=t.options.map(String).join(' / ');
+   details.append(element('p','Svaralternativer: '+choices,'nmAdminHint'));
+   if(!isQuarter(t))details.append(element('p','Begge semifinalespørsmålene publiseres samtidig med identisk svarfrist.','nmAdminHint'));
    const op=dateInput(t.opens_at||D.settings?.nm_unlock_at),dl=dateInput(t.deadline);
    field(details,'Når skal spørsmålet åpne?',op);
    field(details,'Svarfrist før kampene starter',dl);
@@ -166,13 +154,9 @@ function adminNM(){
     if(!op.value||!dl.value){errors.textContent='Legg inn både åpning og svarfrist.';return}
     const start=new Date(op.value),end=new Date(dl.value);
     if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||end<=start){errors.textContent='Svarfristen må være etter åpningstiden.';return}
-    if(!isQuarter(t)&&(!a.value||!b.value||a.value===b.value)){errors.textContent='Velg to forskjellige lag i semifinalen.';return}
     save.disabled=true;errors.textContent='Lagrer…';
     try{
-     const action=isQuarter(t)?'admin_publish_nm_question':'admin_set_nm_match';
-     const payload={task_id:t.id,opens_at:start.toISOString(),deadline:end.toISOString()};
-     if(!isQuarter(t)){payload.team_a=a.value;payload.team_b=b.value}
-     await call(action,payload);await reloadNm();
+     await call('admin_publish_nm_question',{task_id:t.id,opens_at:start.toISOString(),deadline:end.toISOString()});await reloadNm();
     }catch(err){errors.textContent=err.message||'Kunne ikke lagre';save.disabled=false}
    };
    buttons.append(save);
