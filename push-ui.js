@@ -16,10 +16,42 @@ function button(text,fn,primary=false){
 function makeCard(){
   if(document.getElementById('pushCard'))return document.getElementById('pushCard');
   const app=document.getElementById('app');if(!app)return null;
-  const card=document.createElement('div');card.id='pushCard';card.className='card';
-  card.innerHTML='<div class="ey">Varsler</div><h3 style="margin:8px 0 4px">🔔 Pushvarsler</h3><p id="pushText" class="muted" style="margin:0 0 10px"></p><div id="pushActions" style="display:flex;gap:8px;flex-wrap:wrap"></div><div id="pushPrefs" style="margin-top:12px"></div><div id="pushAdmin" style="margin-top:12px"></div>';
-  const deadline=app.querySelector(':scope > .deadline');
-  if(deadline)deadline.insertAdjacentElement('afterend',card);else app.prepend(card);
+  if(!document.getElementById('pushDockStyles')){
+    const style=document.createElement('style');style.id='pushDockStyles';
+    style.textContent=`
+      #pushCard.pushDock{
+        position:fixed!important;right:18px!important;bottom:18px!important;top:auto!important;left:auto!important;
+        z-index:1000;width:192px;max-width:calc(100vw - 24px);margin:0!important;padding:0!important;
+        border:1px solid #354257;border-radius:18px;background:#111925;
+        box-shadow:0 14px 38px rgba(0,0,0,.5);overflow:hidden;
+        grid-column:auto!important;min-width:0;
+      }
+      #pushCard.pushDock[open]{width:min(390px,calc(100vw - 24px));border-color:#6b492e}
+      #pushCard .pushDockToggle{display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;
+        cursor:pointer;padding:13px 15px;font-size:14px;font-weight:900;user-select:none}
+      #pushCard .pushDockToggle::-webkit-details-marker{display:none}
+      #pushCard .pushDockToggle:focus-visible{outline:2px solid #ff9a3d;outline-offset:-3px}
+      #pushCard .pushDockStatus{font-size:11px;color:#aeb8ca;font-weight:750;white-space:nowrap}
+      #pushCard .pushDockChevron{font-size:16px;color:#ff9a3d}
+      #pushCard[open] .pushDockChevron{transform:rotate(180deg)}
+      #pushCard .pushDockBody{padding:2px 15px 15px;max-height:min(72vh,630px);overflow-y:auto;overscroll-behavior:contain;
+        border-top:1px solid #293649}
+      #pushCard .pushDockBody .secondary,#pushCard .pushDockBody .primary{max-width:100%;overflow-wrap:break-word}
+      #pushCard .pushDockBody label{min-width:0}
+      #pushCard .pushDockBody input{min-width:0}
+      #pushCard #pushAdmin{overflow-wrap:anywhere}
+      @media(max-width:640px){
+        #pushCard.pushDock{right:12px!important;bottom:12px!important}
+        #pushCard .pushDockBody{max-height:75dvh}
+      }
+    `;
+    document.head.append(style);
+  }
+  // Keep the floating control outside the desktop grid flow. Settings appear
+  // only when the participant expands the notification panel.
+  const card=document.createElement('details');card.id='pushCard';card.className='pushDock card';
+  card.innerHTML='<summary class="pushDockToggle" aria-label="Åpne eller lukk varslingsinnstillinger"><span>🔔 Varsler</span><span id="pushDockStatus" class="pushDockStatus">Laster</span><span class="pushDockChevron" aria-hidden="true">⌃</span></summary><div class="pushDockBody"><h3 style="margin:10px 0 4px;font-size:18px">Pushvarsler</h3><p id="pushText" class="muted" style="margin:0 0 10px;font-size:13px"></p><div id="pushActions" style="display:flex;gap:8px;flex-wrap:wrap"></div><div id="pushPrefs" style="margin-top:12px"></div><div id="pushAdmin" style="margin-top:12px"></div></div>';
+  app.append(card);
   return card;
 }
 function toggleRow(label,key,checked){
@@ -59,18 +91,20 @@ async function render(){
   if(!token())return;
   const card=makeCard();if(!card)return;
   const text=card.querySelector('#pushText'),actions=card.querySelector('#pushActions'),prefs=card.querySelector('#pushPrefs'),admin=card.querySelector('#pushAdmin');
+  const status=card.querySelector('#pushDockStatus');
+  if(status)status.textContent='Sjekker';
   actions.innerHTML='';prefs.innerHTML='';
   await renderAdmin(admin);
   if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window)){
-    text.textContent='Denne nettleseren støtter ikke pushvarsler.';return;
+    text.textContent='Denne nettleseren støtter ikke pushvarsler.';if(status)status.textContent='Ikke støttet';return;
   }
   if(isIOS()&&!standalone()){
-    text.innerHTML='På iPhone/iPad må Familietips først legges til på Hjem-skjermen. Trykk <b>Del</b> → <b>Legg til på Hjem-skjerm</b>. Åpne appen fra ikonet og slå på varsler.';
+    text.innerHTML='På iPhone/iPad må Familietips først legges til på Hjem-skjermen. Trykk <b>Del</b> → <b>Legg til på Hjem-skjerm</b>. Åpne appen fra ikonet og slå på varsler.';if(status)status.textContent='Av';
     return;
   }
-  let sub=null;try{sub=await currentSub()}catch(e){text.textContent='Kunne ikke starte varsler: '+e.message;return}
+  let sub=null;try{sub=await currentSub()}catch(e){text.textContent='Kunne ikke starte varsler: '+e.message;if(status)status.textContent='Feil';return}
   if(Notification.permission==='granted'&&sub){
-    text.textContent='Varsler er på på denne enheten. Nye bonusoppgaver og manglende svar kan varsles automatisk.';
+    text.textContent='Varsler er på på denne enheten. Nye bonusoppgaver og manglende svar kan varsles automatisk.';if(status)status.textContent='På ✓';
     let st={preferences:{new_bonus:true,deadline_24h:true,deadline_2h:true,results:true,admin_broadcast:true}};
     try{st=await api('status')}catch{}
     await renderPrefs(prefs,st.preferences||{});
@@ -79,9 +113,9 @@ async function render(){
     return;
   }
   if(Notification.permission==='denied'){
-    text.textContent='Varsler er blokkert. Tillat varsler i telefonens innstillinger for Familietips/nettleseren.';return;
+    text.textContent='Varsler er blokkert. Tillat varsler i telefonens innstillinger for Familietips/nettleseren.';if(status)status.textContent='Blokkert';return;
   }
-  text.textContent=isIOS()?'Trykk under for å tillate varsler på denne iPhone/iPad-en.':'Trykk under for å slå på varsler på denne enheten.';
+  text.textContent=isIOS()?'Trykk under for å tillate varsler på denne iPhone/iPad-en.':'Trykk under for å slå på varsler på denne enheten.';if(status)status.textContent='Av';
   actions.append(button('Slå på varsler',async e=>{
     const b=e.currentTarget;b.disabled=true;
     try{
