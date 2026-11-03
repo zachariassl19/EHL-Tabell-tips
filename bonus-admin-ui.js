@@ -19,7 +19,7 @@ renderAdminBonus=function(){
   const total=tasks.reduce((a,t)=>a+maxBonus(t),0),opening=tasks.map(t=>t.opens_at).filter(Boolean).sort()[0];
   const card=el('details',undefined,'monthlyAdminCard');card.open=active===pkg;
   card.addEventListener('toggle',()=>{if(card.open)active=pkg});
-  const summary=el('summary');summary.append(el('strong',emoji+' '+name),el('small',tasks.length?tasks.length+' spørsmål · '+total+' poeng':'Ingen spørsmål ennå'));card.append(summary);
+  const summary=el('summary');summary.append(el('strong',emoji+' '+name),el('small',tasks.length?tasks.length+' spørsmål · '+total+' / 20 poeng':'Ingen spørsmål ennå'));card.append(summary);
   const body=el('div',undefined,'monthlyAdminBody');body.append(el('p',opening?'Slipp satt: '+fmt(opening):'Ingen slippdato satt','monthlyAdminSmall'));
   const when=document.createElement('input');when.type='datetime-local';when.value=local(opening);field(body,'Åpnes dato og klokkeslett',when);
   const save=el('button',tasks.length?'Lagre slippdato':'Legg til spørsmål først','secondary');save.type='button';save.disabled=!tasks.length;
@@ -51,7 +51,7 @@ renderAdminBonus=function(){
     messages[pkg]='✓ Spørsmål opprettet';D=await call('bootstrap');renderAdminBonus();renderBonus();renderRules();
    }catch(err){feedback.textContent='Feil: '+err.message;create.disabled=false}
   };
-  details.append(form);body.append(details);card.append(body);grid.append(card);
+  if(total>=20){body.append(el('p','✅ Poengrammen er fylt opp: 20 av 20 poeng.','monthlyAdminSmall'))}else{details.append(form);body.append(details)}card.append(body);grid.append(card);
  }
  root.prepend(grid);root.prepend(intro);
 };
