@@ -38,7 +38,16 @@ const css=document.createElement('style');css.id='nmBracket2027Style';css.textCo
 '#nmAdminBracket .nmAdminActions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}',
 '#nmAdminBracket .nmAdminActions button{flex:1;min-width:140px}',
 '#nmAdminBracket h3{margin:22px 0 6px}',
-'#nmAdminBracket .nmStatus{font-size:12px;color:#e3b16c;margin:9px 0;min-height:16px}'
+'#nmAdminBracket .nmStatus{font-size:12px;color:#e3b16c;margin:9px 0;min-height:16px}',
+'#nmAdminBracket .nmAdminVisual{overflow-x:auto;padding:6px 0 14px;max-width:100%}',
+'#nmAdminBracket .nmAdminVisualGrid{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));min-width:700px;gap:9px}',
+'#nmAdminBracket .nmAdminVisualCol{border:1px solid #34465e;border-radius:12px;padding:10px;background:#101b2b}',
+'#nmAdminBracket .nmAdminVisualCol h4{font-size:12px;margin:0 0 12px;color:#fac07a}',
+'#nmAdminBracket .nmAdminVisualCard{background:#091320;border:1px solid #324458;border-radius:10px;margin:8px 0 13px;padding:10px;min-height:72px;display:flex;flex-direction:column;justify-content:center;gap:6px;font-size:12px}',
+'#nmAdminBracket .nmAdminVisualCard small{color:#a2b5cc}',
+'#nmAdminBracket .nmAdminVisualCol[data-r=semi] .nmAdminVisualCard{margin:37px 0 51px;min-height:113px}',
+'#nmAdminBracket .nmAdminVisualCol[data-r=final] .nmAdminVisualCard{margin-top:113px;min-height:130px}',
+'#nmAdminBracket .nmAdminVisualCol[data-r=champion] .nmAdminVisualCard{margin-top:133px;min-height:110px;border-color:#a57c43;color:#f8c572}'
 ].join('');document.head.append(css);
 const elem=(tag,text,klass)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(klass)x.className=klass;return x};
 const cap=(parent,heading,content)=>{parent.append(elem('h3',heading));parent.append(elem('p',content,'nmHelp'))};
@@ -171,14 +180,33 @@ renderNmState=function(){
  const oldNote=document.getElementById('nmTotalLocked');if(oldNote)oldNote.textContent='NM har 100 poeng: bracket 70, poengkonge 10, MVP 10 og finaleutfordringer 10.';
 };
 renderBracket=function(){drawBracket()};
+function showAdminBracketPreview(root,actual){
+ const pairs=actual?.quarter_pairs||[];
+ if(pairs.length!==4)return;
+ root.append(elem('h3','📊 Faktisk sluttspillbracket'));
+ const wrap=elem('div',undefined,'nmAdminVisual'),grid=elem('div',undefined,'nmAdminVisualGrid');
+ const quarter=elem('div',undefined,'nmAdminVisualCol');quarter.dataset.r='quarter';quarter.append(elem('h4','8 lag · Kvartfinaler'));
+ pairs.forEach((pair,i)=>{const card=elem('div',undefined,'nmAdminVisualCard');card.append(elem('small','Kvartfinale '+(i+1)),elem('span',pair[0]+' – '+pair[1]),elem('strong',actual.quarter_winners?.[i]?'✓ '+actual.quarter_winners[i]:'Vinner ikke registrert'));quarter.append(card)});
+ const semi=elem('div',undefined,'nmAdminVisualCol');semi.dataset.r='semi';semi.append(elem('h4','4 lag · Semifinaler'));
+ for(let i=0;i<2;i++){
+  const card=elem('div',undefined,'nmAdminVisualCard'),pair=actual.semi_pairs?.[i]||[];
+  card.append(elem('small','Semifinale '+(i+1)),elem('span',pair.length===2?pair.join(' – '):'Oppsett kommer senere'),elem('strong',actual.finalists?.[i]?'✓ '+actual.finalists[i]:'Finalist ikke registrert'));semi.append(card);
+ }
+ const final=elem('div',undefined,'nmAdminVisualCol');final.dataset.r='final';final.append(elem('h4','2 lag · Finale'));
+ const f=elem('div',undefined,'nmAdminVisualCard'),fin=actual.finalists||[];f.append(elem('strong',fin.filter(Boolean).length===2?fin.join(' – '):'Finalistene kommer senere'));final.append(f);
+ const champ=elem('div',undefined,'nmAdminVisualCol');champ.dataset.r='champion';champ.append(elem('h4','1 lag · NM-gull'));const c=elem('div',undefined,'nmAdminVisualCard');c.append(elem('strong','🏆 '+(actual.champion||'Ikke avgjort')));champ.append(c);
+ grid.append(quarter,semi,final,champ);wrap.append(grid);root.append(wrap);
+}
 function adminPanel(){
  if(!D?.user?.is_admin)return;
  const anchor=document.getElementById('nmUnlock')?.closest('.card');if(!anchor)return;
  let root=document.getElementById('nmAdminBracket');
  if(!root){const card=elem('section',undefined,'card');card.id='nmAdminBracket';root=card;anchor.insertAdjacentElement('afterend',card)}
  root.replaceChildren();root.append(elem('h2','🏆 Admin · NM-bracket 8 → 4 → 2 → 1'));
+ const stored=D.nmBracket||{};
+ showAdminBracketPreview(root,stored);
  cap(root,'1. Sett opp kvartfinalene','Legg inn åtte forskjellige EHL-lag. Hvem møter hvem? Du styrer alle oppgjørene manuelt. Oppsettet låses mot endringer så snart noen har tippet.');
- const stored=D.nmBracket||{},pairs=stored.quarter_pairs||[];
+ const pairs=stored.quarter_pairs||[];
  const startGrid=elem('div',undefined,'nmAdminGrid'),setupInputs=[];
  for(let i=0;i<4;i++){
   const card=elem('div',undefined,'nmAdminMatch');card.append(elem('strong','Kvartfinale '+(i+1)));
