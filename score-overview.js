@@ -12,7 +12,9 @@ renderRules=function(){
  const months=['2026-11','2026-12','2027-01','2027-02','2027-03'];
  const names=['🍂 November','🎄 Desember','❄️ Januar','🏒 Februar','🏆 Seriefinale'];
  const base=41+s.coach+s.points+s.worst+s.positive;
- const nmBase=s.nm+s.playoffPoints+s.mvp;
+ const bracket=D.nmBracketScoring||{quarter:4,finalist:7,allQuarter:10,bothFinalists:10};
+ const bracketExtra=4*bracket.quarter+2*bracket.finalist+bracket.allQuarter+bracket.bothFinalists;
+ const nmBase=s.nm+s.playoffPoints+s.mvp+bracketExtra;
  const monthly=months.map(x=>t.filter(q=>q.source_rule?.package===x));
  const monthlyMax=monthly.reduce((n,p)=>n+total(p),0);
  const nmMax=nmBase+total(nm),bonusMax=total(season);
@@ -28,11 +30,16 @@ renderRules=function(){
  out.push('<h3 class="scoreSection">🗓️ Månedspakker – '+monthlyMax+' p</h3>');
  monthly.forEach((p,i)=>out.push(row(names[i],total(p),p.length+' spørsmål')));
  out.push('<p class="scoreNote">Tallspørsmål gir delpoeng etter avstand til fasit. Lengst unna får 0 poeng når avvikene er ulike.</p>');
- out.push('<h3 class="scoreSection">🥇 NM-sluttspill – '+nmMax+' p</h3>',
- row('Norgesmester',s.nm),
- row('Poengkonge sluttspill',s.playoffPoints,'Riktig klubb med feil spiller: '+(s.clubPlayoff||0)+' p'),
- row('Sluttspill-MVP',s.mvp,'Riktig klubb med feil spiller: '+(s.clubMvp||0)+' p'));
- nm.forEach(x=>out.push(row(x.title,maxBonus(x),x.status==='draft'?'Lagene bestemmes når NM-oppsettet er klart':'')));
+ out.push('<h3 class="scoreSection">🏆 NM-sluttspill – '+nmMax+' p</h3>',
+ '<p class="scoreNote">Hele bracketen fylles ut før kvartfinalene. Fasit for oppgjør og mesteren føres manuelt av admin.</p>',
+ row('Riktige kvartfinalevinnere',4*bracket.quarter,'4 poeng for hvert riktig lag som går til semifinale'),
+ row('Riktige finalister',2*bracket.finalist,'7 poeng per riktig lag. Rekkefølgen spiller ingen rolle'),
+ row('Norgesmester',s.nm,'Velg vinneren blant dine to finalister. Riktig lag gir 20 poeng'),
+ row('Perfekt kvartfinalerunde',bracket.allQuarter,'Ekstra bonus når alle fire kvartfinalevinnere er riktige'),
+ row('Begge finalistene riktig',bracket.bothFinalists,'Ekstra bonus når begge finalelagene er riktige'),
+ row('Poengkonge sluttspill',s.playoffPoints,'Riktig spiller gir 10 p · riktig klubb med feil spiller gir '+(s.clubPlayoff||0)+' p'),
+ row('Sluttspill-MVP',s.mvp,'Riktig spiller gir 10 p · riktig klubb med feil spiller gir '+(s.clubMvp||0)+' p'));
+ nm.forEach(x=>out.push(row(x.title,maxBonus(x),x.description||'Dette tipset åpner før NM-finalen.')));
  out.push('<div class="scoreTotal"><span>🏆 Maks totalt</span><b>'+grand+' p</b></div>');
  const root=document.getElementById('rules');if(root)root.innerHTML=out.join('');
 };
