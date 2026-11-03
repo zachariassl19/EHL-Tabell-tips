@@ -216,6 +216,8 @@ function showAdminBracketPreview(root,actual){
 }
 function adminPanel(){
  if(!D?.user?.is_admin)return;
+ const oldChampionField=document.getElementById('aChamp')?.closest('label');
+ if(oldChampionField)oldChampionField.style.display='none'; // Champion truth is managed in the actual playoff bracket.
  const anchor=document.getElementById('nmUnlock')?.closest('.card');if(!anchor)return;
  let root=document.getElementById('nmAdminBracket');
  if(!root){const card=elem('section',undefined,'card');card.id='nmAdminBracket';root=card;anchor.insertAdjacentElement('afterend',card)}
