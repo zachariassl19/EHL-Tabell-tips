@@ -7,7 +7,7 @@ const total=a=>a.reduce((n,t)=>n+maxBonus(t),0);
 renderRules=function(){
  if(!D?.scoring)return;
  const s=D.scoring,t=D.bonusTasks||[];
- const season=t.filter(x=>!x.source_rule?.package&&x.source_rule?.group!=='nm');
+ const season=t.filter(x=>!x.source_rule?.package&&x.source_rule?.group!=='nm'&&x.source_rule?.group!=='easter');
  const nm=t.filter(x=>x.source_rule?.group==='nm');
  const months=['2026-11','2026-12','2027-01','2027-02','2027-03'];
  const names=['🍂 November','🎄 Desember','❄️ Januar','🏒 Februar','🏆 Seriefinale'];
@@ -18,7 +18,8 @@ renderRules=function(){
  const monthly=months.map(x=>t.filter(q=>q.source_rule?.package===x));
  const monthlyMax=monthly.reduce((n,p)=>n+total(p),0);
  const nmMax=nmBase+total(nm),bonusMax=total(season);
- const grand=base+bonusMax+monthlyMax+nmMax;
+ const easterMax=3;
+ const grand=base+bonusMax+monthlyMax+nmMax+easterMax;
  const out=['<h3 class="scoreSection">🏒 Sesongtips – '+base+' p</h3>',
  row('Tabelltips inkl. topp 3 og seriemester',41,'Riktig plassering og topp 3-bonus'),
  row('Første trener som ryker',s.coach),
