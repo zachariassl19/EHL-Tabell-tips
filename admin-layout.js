@@ -43,13 +43,13 @@ const paneInfo={
  actual:['Fasit','Grunnserie- og sesongfasit uten resten av adminstøyen.'],
  bonus:['Bonuspakker','Månedspakker, slippdatoer og manuell bonusfasit.']
 };
-function title(pane,key){if(pane.querySelector('.adminPaneTitle'))return;const w=document.createElement('div');w.className='adminPaneTitle';w.innerHTML='<div><h2>'+paneInfo[key][0]+'</h2><p>'+paneInfo[key][1]+'</p></div>';pane.prepend(w)}
+function title(pane,key){if(pane.querySelector('.adminPaneTitle'))return;const w=document.createElement('div');w.className='adminPaneTitle';w.innerHTML='<div><h2>'+paneInfo[key][0]+'</h2><p>'+paneInfo[key][1]+'</p></div>';pane.prepend(w);if(key==='actual'){const h=document.createElement('div');h.className='adminHintTop';h.textContent='Live EHL-tabell hentes automatisk. Her trenger du bare å føre fasiter som ikke kan avgjøres av HockeyLive.';pane.append(h)}if(key==='bonus'){const h=document.createElement('div');h.className='adminHintTop';h.textContent='Månedspakker styres her. Automatiske spørsmål trenger normalt ikke manuell fasit.';pane.append(h)}}
 function ensure(){
  const view=document.getElementById('adminView');if(!view||!window.D?.user?.is_admin)return;
  let shell=view.querySelector(':scope > .adminShell');
  if(!shell){
    shell=document.createElement('div');shell.className='adminShell';
-   const hero=document.createElement('div');hero.className='adminHero';hero.innerHTML='<div><div class="ey">Kun for admin 🔒</div><h2>Kontrollrom</h2><p>Alt du trenger er delt opp så du slipper å lete i én lang side.</p></div>';
+   const hero=document.createElement('div');hero.className='adminHero';hero.innerHTML='<div><div class="ey">Kun for admin 🔒</div><h2>Kontrollrom</h2><p>Oversikt først. Detaljene ligger i egne faner når du trenger dem.</p></div>';
    const nav=document.createElement('div');nav.className='adminNav';nav.setAttribute('role','tablist');
    const defs=[['overview','🏠 Oversikt'],['nm','🏆 NM'],['actual','✅ Fasit'],['bonus','📦 Bonuspakker']];
    defs.forEach(([k,label])=>{const b=document.createElement('button');b.type='button';b.dataset.adminPane=k;b.textContent=label;b.onclick=()=>show(k);nav.append(b)});
@@ -65,7 +65,7 @@ function organize(view,shell){
  const panes={};shell.querySelectorAll('.adminPane').forEach(p=>panes[p.dataset.pane]=p);
  // Hide the old generic Admin intro; the compact hero replaces it.
  const intro=[...view.querySelectorAll(':scope > .card')].find(x=>x.querySelector('h2')?.textContent.trim()==='Admin');if(intro)intro.remove();
- move(view.querySelector(':scope > .adminPerks'),panes.overview);
+ const perks=view.querySelector(':scope > .adminPerks');if(perks){const ey=perks.querySelector(':scope > .ey');if(ey)ey.textContent='STATUS';const h=perks.querySelector(':scope > h3');if(h)h.textContent='Dagens oversikt';const p=perks.querySelector(':scope > p');if(p)p.textContent='Deltakelse, siste synk og live-data samlet på ett sted.'}move(perks,panes.overview);
  move(view.querySelector(':scope > #resetCard'),panes.overview);
 
  const nmCard=[...view.querySelectorAll(':scope > .card')].find(x=>x.querySelector('#nmUnlock'));move(nmCard,panes.nm);
