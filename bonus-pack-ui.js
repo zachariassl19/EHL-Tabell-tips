@@ -152,6 +152,19 @@ function makeTask(t,picks){
  }
  return card;
 }
+function lockedTap(pack,tile,nextOpen){
+ const key='ehlPackTap:'+D.user.slug+':'+pack.id;
+ const count=Number(localStorage.getItem(key)||0)+1;localStorage.setItem(key,String(count));
+ tile.classList.remove('tease');void tile.offsetWidth;tile.classList.add('tease');
+ const status=tile.querySelector('.packStatus');
+ if(status&&count<5)status.textContent=count===1?'Ikke ennå 👀':count===2?'Fortsatt låst 😏':count===3?'Du er veldig nysgjerrig nå…':'Én gang til så får du beskjed 😅';
+ if(count>=5){
+   document.getElementById('packWarning')?.remove();
+   const modal=document.createElement('div');modal.id='packWarning';modal.className='packWarning';
+   modal.innerHTML='<div class="packWarningCard"><div class="packWarningIcon">🚨</div><div class="ey">Nysgjerrig, eller?</div><h2>Ro deg litt nå 😅</h2><p>Du har prøvd å åpne <b>'+pack.title+'-pakken</b> '+count+' ganger. Den kommer snart. Låsen åpner seg dessverre ikke fortere av at du trykker på den.</p><p class="tiny">'+(nextOpen?'Åpner '+fmt(new Date(nextOpen)):'' )+'</p><button class="primary">Greit da 😂</button></div>';
+   modal.querySelector('button').onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove()};document.body.append(modal);
+ }
+}
 renderBonus=function(){
  const root=document.querySelector('#bonusTasks');
  if(!root||typeof D==='undefined'||!D)return;
@@ -199,7 +212,7 @@ renderBonus=function(){
    addText(btn,'span','packTileOpponents','🏒 '+games.length+' kamper · '+opponents+(games.length>2?' + '+(games.length-2)+' til':''));
   }
   addText(btn,'span','packStatus'+(allDone?' done':''),allDone?'Avgjort':!all.length?'Kommer senere':accessible.length?answered+'/'+all.length+' besvart':nextOpen?'Åpner om '+countdownText(nextOpen-now):'Ikke åpnet');
-  btn.onclick=()=>{selectedPack=selected?null:pack.id;seasonExpanded=false;renderBonus()};
+  btn.onclick=()=>{if(!accessible.length&&nextOpen){lockedTap(pack,btn,nextOpen);return}selectedPack=selected?null:pack.id;seasonExpanded=false;renderBonus()};
   grid.append(btn);
  });
  root.append(grid);
@@ -235,8 +248,19 @@ renderBonus=function(){
  if(seasonExpanded){
   const body=document.createElement('div');body.className='bonusSeasonList';
   const accessible=season.filter(t=>!isHiddenBeforeOpen(t,now));
-  if(accessible.length)accessible.forEach(t=>body.append(makeTask(t,picks)));
-  else addText(body,'div','bonusEmpty','Ingen åpne sesongbonuser akkurat nå.');
+  const activeTasks=accessible.filter(t=>t.status!=='settled'&&(!t.deadline||new Date(t.deadline).getTime()>=now));
+  const history=accessible.filter(t=>t.status==='settled'||(t.deadline&&new Date(t.deadline).getTime()<now));
+  if(activeTasks.length){
+    const h=document.createElement('div');h.style.gridColumn='1/-1';addText(h,'h4','','🎯 Aktive sesongbonuser');body.append(h);
+    activeTasks.forEach(t=>body.append(makeTask(t,picks)));
+  }
+  if(history.length){
+    const details=document.createElement('details');details.style.gridColumn='1/-1';details.className='bonusHistory';
+    const s=document.createElement('summary');s.textContent='🗂️ Historikk · '+history.length+' tidligere oppgaver';s.style.cssText='cursor:pointer;font-weight:900;padding:12px;border:1px solid #2a3445;border-radius:12px;background:#0d1420';
+    const hist=document.createElement('div');hist.className='bonusSeasonList';hist.style.marginTop='10px';history.forEach(t=>hist.append(makeTask(t,picks)));
+    details.append(s,hist);body.append(details);
+  }
+  if(!activeTasks.length&&!history.length)addText(body,'div','bonusEmpty','Ingen sesongbonuser akkurat nå.');
   root.append(body);
  }
 };
