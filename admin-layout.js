@@ -45,7 +45,7 @@ const paneInfo={
 };
 function title(pane,key){if(pane.querySelector('.adminPaneTitle'))return;const w=document.createElement('div');w.className='adminPaneTitle';w.innerHTML='<div><h2>'+paneInfo[key][0]+'</h2><p>'+paneInfo[key][1]+'</p></div>';pane.prepend(w);if(key==='actual'){const h=document.createElement('div');h.className='adminHintTop';h.textContent='Live EHL-tabell hentes automatisk. Her trenger du bare å føre fasiter som ikke kan avgjøres av HockeyLive.';pane.append(h)}if(key==='bonus'){const h=document.createElement('div');h.className='adminHintTop';h.textContent='Månedspakker styres her. Automatiske spørsmål trenger normalt ikke manuell fasit.';pane.append(h)}}
 function ensure(){
- const view=document.getElementById('adminView');if(!view||!window.D?.user?.is_admin)return;
+ const view=document.getElementById('adminView');if(!view||!typeof D!=='undefined'&&D?.user?.is_admin)return;
  let shell=view.querySelector(':scope > .adminShell');
  if(!shell){
    shell=document.createElement('div');shell.className='adminShell';
