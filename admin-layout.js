@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const style=document.createElement('style');style.id='adminLayoutV2Styles';style.textContent=`
-#adminView.adminOrganized{display:block!important}
+#adminView.adminOrganized:not(.hidden){display:block!important}
 #adminView.adminOrganized>.card,#adminView.adminOrganized>button,#adminView.adminOrganized>.status,#adminView.adminOrganized>#nmAdminBracket{display:none!important}
 #adminView .adminShell{display:block;width:100%;min-width:0}
 #adminView .adminHero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:14px;padding:18px 20px;border:1px solid #2b3748;border-radius:20px;background:linear-gradient(135deg,#151c28,#0c121c)}
