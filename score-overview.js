@@ -41,6 +41,9 @@ renderRules=function(){
  row('Poengkonge sluttspill',s.playoffPoints,'Riktig spiller gir 10 p · riktig klubb med feil spiller gir '+(s.clubPlayoff||0)+' p'),
  row('Sluttspill-MVP',s.mvp,'Riktig spiller gir 10 p · riktig klubb med feil spiller gir '+(s.clubMvp||0)+' p'));
  nm.forEach(x=>out.push(row(x.title,maxBonus(x),x.description||'Dette tipset åpner før NM-finalen.')));
+ out.push('<h3 class="scoreSection">🥚 Easter egg – 3 p</h3>');
+ out.push('<div id="easterScoreRow" class="rule"><span><b>Easter egg</b><div class="tiny">Skjult utfordring. Hint kan åpnes her.</div></span><span style="display:flex;align-items:center;gap:8px"><button id="easterHintBtn" class="secondary" type="button" style="width:auto;margin:0;padding:7px 10px">Hint</button><b>3 p</b></span></div>');
+ out.push('<div id="easterHintText" class="scoreNote hidden"></div>');
  out.push('<div class="scoreTotal"><span>🏆 Maks totalt</span><b>'+grand+' p</b></div>');
  const root=document.getElementById('rules');if(root)root.innerHTML=out.join('');
 };
