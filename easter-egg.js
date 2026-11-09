@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-let prizeCount=0,prizeTimer=null,busy=false;
+let prizeCount=0,prizeTimer=null,stepQueue=Promise.resolve();
 
 function easterTask(){
   return (D?.bonusTasks||[]).find(t=>t.code==='easter_egg_360');
@@ -9,20 +9,21 @@ function solved(){
   const t=easterTask();
   return !!(t&&(D?.bonusPicks||[]).some(p=>p.task_id===t.id&&Number(p.points)===3));
 }
-async function step(event){
-  if(busy||typeof D==='undefined'||!D?.user||D.user.is_admin||solved())return false;
-  busy=true;
-  try{
-    const r=await call('easter_step',{event});
-    if(r?.solved){
-      D=await call('bootstrap');
-      try{renderLb();renderRules()}catch{}
-      showSolved();
-      return true;
-    }
-  }catch(e){console.warn('Easter egg step failed',e)}
-  finally{busy=false}
-  return false;
+function step(event){
+  if(typeof D==='undefined'||!D?.user||D.user.is_admin||solved())return Promise.resolve(false);
+  stepQueue=stepQueue.then(async()=>{
+    try{
+      const r=await call('easter_step',{event});
+      if(r?.solved){
+        D=await call('bootstrap');
+        try{renderLb();renderRules()}catch{}
+        showSolved();
+        return true;
+      }
+    }catch(e){console.warn('Easter egg step failed',e)}
+    return false;
+  });
+  return stepQueue;
 }
 function showSolved(){
   document.getElementById('easterSolvedModal')?.remove();
