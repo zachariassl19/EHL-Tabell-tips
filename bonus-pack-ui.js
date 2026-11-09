@@ -157,7 +157,7 @@ function lockedTap(pack,tile,nextOpen){
  const count=Number(localStorage.getItem(key)||0)+1;localStorage.setItem(key,String(count));
  tile.classList.remove('tease');void tile.offsetWidth;tile.classList.add('tease');
  const status=tile.querySelector('.packStatus');
- if(status&&count<5)status.textContent=count===1?'Ikke ennå 👀':count===2?'Fortsatt låst 😏':count===3?'Du er veldig nysgjerrig nå…':'Én gang til så får du beskjed 😅';
+ if(status&&count<5){status.textContent=count===1?'Ikke ennå 👀':count===2?'Fortsatt låst 😏':count===3?'Du er veldig nysgjerrig nå…':'Én gang til så får du beskjed 😅';tile.dataset.teaseUntil=String(Date.now()+3200)}
  if(count>=5){
    document.getElementById('packWarning')?.remove();
    const modal=document.createElement('div');modal.id='packWarning';modal.className='packWarning';
@@ -216,7 +216,7 @@ renderBonus=function(){
   grid.append(btn);
  });
  root.append(grid);
- if(grid.querySelector('[data-opens-at]'))releaseTimer=setInterval(async()=>{let expired=false;grid.querySelectorAll('[data-opens-at]').forEach(tile=>{const ms=Number(tile.dataset.opensAt)-Date.now(),status=tile.querySelector('.packStatus');if(ms<=0)expired=true;else if(status)status.textContent='Åpner om '+countdownText(ms)});if(expired){clearInterval(releaseTimer);releaseTimer=null;try{D=await call('bootstrap');renderBonus()}catch(e){console.warn('Kunne ikke oppdatere månedspakkene',e)}}},1000);
+ if(grid.querySelector('[data-opens-at]'))releaseTimer=setInterval(async()=>{let expired=false;grid.querySelectorAll('[data-opens-at]').forEach(tile=>{const ms=Number(tile.dataset.opensAt)-Date.now(),status=tile.querySelector('.packStatus');if(ms<=0)expired=true;else if(status){const hold=Number(tile.dataset.teaseUntil||0);if(Date.now()>=hold){status.textContent='Åpner om '+countdownText(ms);if(hold)delete tile.dataset.teaseUntil}}});if(expired){clearInterval(releaseTimer);releaseTimer=null;try{D=await call('bootstrap');renderBonus()}catch(e){console.warn('Kunne ikke oppdatere månedspakkene',e)}}},1000);
  if(selectedPack){
   const pack=packs.find(p=>p.id===selectedPack),all=packages.get(selectedPack)||[];
   if(pack){
