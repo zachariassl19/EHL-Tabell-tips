@@ -45,6 +45,19 @@ css.textContent=[
  '@media(min-width:800px){.packGrid{grid-template-columns:repeat(5,minmax(0,1fr))}.packTaskList,.bonusSeasonList{grid-template-columns:repeat(2,minmax(0,1fr))}}',
  '@media(max-width:460px){.packTile{min-height:132px;padding:12px}.packTitle{font-size:16px}.packIcon{font-size:27px}.packHeading{align-items:flex-start;flex-direction:column}}'
 ].join('');
+css.textContent += [
+ '.packWarning{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:20px max(16px,env(safe-area-inset-right)) 20px max(16px,env(safe-area-inset-left));background:rgba(2,6,13,.82);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);overflow-y:auto}',
+ '.packWarningCard{position:relative;box-sizing:border-box;width:min(440px,100%);max-height:calc(100dvh - 40px);overflow-y:auto;padding:30px 22px 22px;border:1px solid #68431d;border-radius:22px;background:radial-gradient(circle at 50% 0%,rgba(255,122,0,.18),transparent 66%),#101723;color:#f8fafc;text-align:center;box-shadow:0 24px 90px rgba(0,0,0,.65)}',
+ '.packWarningIcon{font-size:52px;line-height:1.1;margin-bottom:8px}',
+ '.packWarningCard .ey{color:#ffb777;font-size:12px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}',
+ '.packWarningCard h2{font-size:clamp(24px,6vw,30px);margin:9px 0 12px}',
+ '.packWarningCard p{font-size:15px;line-height:1.6;margin:0 0 14px;color:#ccd5e2}',
+ '.packWarningCard p.tiny{font-size:13px;color:#ffbe83;margin:8px 0 18px}',
+ '.packWarningCard .primary{display:block;width:100%;min-height:48px;margin-top:6px}',
+ '.packWarningClose{position:absolute;right:12px;top:12px;display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #354157;border-radius:10px;color:#f8fafc;background:#1b2636;cursor:pointer;font-size:18px}',
+ '.packWarningClose:focus-visible,.packWarningCard .primary:focus-visible{outline:3px solid #ff9a3d;outline-offset:3px}',
+ '@media(prefers-reduced-motion:no-preference){.packWarningCard{animation:packWarningEnter .18s ease-out}@keyframes packWarningEnter{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}}'
+].join('');
 document.head.append(css);
 
 function getPackage(t){
@@ -153,18 +166,44 @@ function makeTask(t,picks){
  }
  return card;
 }
+function showLockedPackWarning(pack,count,nextOpen,tile){
+ if(document.getElementById('packWarning'))return;
+ const modal=document.createElement('div');
+ modal.id='packWarning';modal.className='packWarning';
+ modal.innerHTML='<section class="packWarningCard" role="dialog" aria-modal="true" aria-labelledby="packWarningTitle" aria-describedby="packWarningDescription"><button type="button" class="packWarningClose" aria-label="Lukk pop-up">✕</button><div class="packWarningIcon" aria-hidden="true">🚨</div><div class="ey">Nysgjerrig, eller?</div><h2 id="packWarningTitle">Ro deg litt nå 😅</h2><p id="packWarningDescription"></p><p class="tiny" id="packWarningOpening"></p><button type="button" class="primary packWarningDismiss">Greit da 😂</button></section>';
+ modal.querySelector('#packWarningDescription').textContent='Du har prøvd å åpne '+pack.title+'-pakken '+count+' ganger. Den kommer snart. Låsen åpner seg dessverre ikke fortere av at du trykker på den.';
+ modal.querySelector('#packWarningOpening').textContent=nextOpen?'🔒 Åpner '+fmt(new Date(nextOpen)):'';
+ const previousOverflow=document.body.style.overflow;
+ const previousFocus=document.activeElement;
+ const close=()=>{
+  document.removeEventListener('keydown',onKeydown);
+  document.body.style.overflow=previousOverflow;
+  modal.remove();
+  const focusTarget=tile.isConnected?tile:previousFocus;
+  if(focusTarget&&focusTarget.isConnected)focusTarget.focus({preventScroll:true});
+ };
+ const onKeydown=e=>{
+  if(e.key==='Escape'){e.preventDefault();close();return}
+  if(e.key!=='Tab')return;
+  const controls=[...modal.querySelectorAll('button:not([disabled])')];
+  const first=controls[0],last=controls[controls.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ };
+ modal.querySelectorAll('button').forEach(button=>button.addEventListener('click',close));
+ modal.addEventListener('click',e=>{if(e.target===modal)close()});
+ document.body.append(modal);
+ document.body.style.overflow='hidden';
+ document.addEventListener('keydown',onKeydown);
+ modal.querySelector('.packWarningClose').focus({preventScroll:true});
+}
 function lockedTap(pack,tile,nextOpen){
  const key='ehlPackTap:'+D.user.slug+':'+pack.id;
  const count=Number(localStorage.getItem(key)||0)+1;localStorage.setItem(key,String(count));
  tile.classList.remove('tease');void tile.offsetWidth;tile.classList.add('tease');
  const status=tile.querySelector('.packStatus');
  if(status&&count<5){status.textContent=count===1?'Ikke ennå 👀':count===2?'Fortsatt låst 😏':count===3?'Du er veldig nysgjerrig nå…':'Én gang til så får du beskjed 😅';tile.dataset.teaseUntil=String(Date.now()+3200)}
- if(count>=5){
-   document.getElementById('packWarning')?.remove();
-   const modal=document.createElement('div');modal.id='packWarning';modal.className='packWarning';
-   modal.innerHTML='<div class="packWarningCard"><div class="packWarningIcon">🚨</div><div class="ey">Nysgjerrig, eller?</div><h2>Ro deg litt nå 😅</h2><p>Du har prøvd å åpne <b>'+pack.title+'-pakken</b> '+count+' ganger. Den kommer snart. Låsen åpner seg dessverre ikke fortere av at du trykker på den.</p><p class="tiny">'+(nextOpen?'Åpner '+fmt(new Date(nextOpen)):'' )+'</p><button class="primary">Greit da 😂</button></div>';
-   modal.querySelector('button').onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove()};document.body.append(modal);
- }
+ if(count>=5)showLockedPackWarning(pack,count,nextOpen,tile);
 }
 renderBonus=function(){
  const root=document.querySelector('#bonusTasks');
