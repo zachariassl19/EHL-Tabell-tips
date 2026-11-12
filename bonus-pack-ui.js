@@ -23,6 +23,7 @@ css.textContent=[
  '.packTileTop{display:flex;justify-content:space-between;align-items:center}.packIcon{font-size:30px}.packLock{font-size:15px;color:#a7b4c5}',
  '.packTitle{font-size:17px;font-weight:900;line-height:1.15;overflow-wrap:anywhere}.packMeta{font-size:12px;color:#aeb8ca}.packStatus{margin-top:auto;font-size:11px;font-weight:900;color:#ffbd7d}.packStatus.done{color:var(--green)}',
  '.packExpanded{padding:15px;margin:0 0 15px;border:1px solid #3f342b;border-radius:17px;background:#101620}.packExpanded h3{margin:0 0 5px}.packExpanded>.tiny{margin-bottom:12px;display:block}',
+ '.packExpandedHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.packExpandedHead h3{margin:0}.packClose{border:1px solid #45546b;background:#1b283b;color:#fff;border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:800;flex-shrink:0}.packClose:focus-visible{outline:2px solid var(--accent)}',
  '.packTaskList{display:grid;grid-template-columns:1fr;gap:10px}.packTaskList>.card{margin:0}',
  '.bonusSeasonToggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px;background:#101722;color:#fff;border:1px solid #2a3445;border-radius:15px;text-align:left;cursor:pointer}',
  '.bonusSeasonToggle strong{font-size:17px}.bonusSeasonToggle small{display:block;color:#aeb8ca;font-size:12px;margin-top:4px}',
@@ -221,7 +222,10 @@ renderBonus=function(){
   const pack=packs.find(p=>p.id===selectedPack),all=packages.get(selectedPack)||[];
   if(pack){
    const panel=document.createElement('section');panel.className='packExpanded';
-   addText(panel,'h3','',pack.emoji+' '+pack.title);
+   const panelHead=document.createElement('div');panelHead.className='packExpandedHead';
+   addText(panelHead,'h3','',pack.emoji+' '+pack.title);
+   const close=document.createElement('button');close.type='button';close.className='packClose';close.textContent='✕ Lukk';close.setAttribute('aria-label','Lukk '+pack.title+'-pakken');close.onclick=()=>{selectedPack=null;renderBonus()};
+   panelHead.append(close);panel.append(panelHead);
    renderFixtures(panel,pack.id);
    const accessible=all.filter(t=>!isHiddenBeforeOpen(t,now));
    const nextOpen=all.filter(t=>isHiddenBeforeOpen(t,now)).map(t=>new Date(t.opens_at).getTime()).sort((a,b)=>a-b)[0];
@@ -234,7 +238,7 @@ renderBonus=function(){
     panel.append(body);
     if(accessible.length<all.length)addText(panel,'div','bonusEmpty','Flere spørsmål åpner senere i pakken.');
    }
-   root.append(panel);
+   root.insertBefore(panel,grid);
   }
  }
  const seasonHead=document.createElement('button');seasonHead.type='button';seasonHead.className='bonusSeasonToggle';seasonHead.setAttribute('aria-expanded',String(seasonExpanded));
